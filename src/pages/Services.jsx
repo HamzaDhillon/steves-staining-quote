@@ -1,56 +1,70 @@
 export default function Services() {
-    return (
-      <section>
-        <div className="bg-cover bg-center h-64" style={{ backgroundImage: `url('/services.jpg')` }}></div>
-        <div className="container mx-auto p-6">
-          <h1 className="text-3xl font-bold mb-8">Our Services</h1>
-  
-          <div className="space-y-6 mb-10">
-            <div>
-              <h2 className="text-2xl font-semibold mb-2">Maintenance Service</h2>
-              <p>
-                Maintenance after 2-4 years is crucial to the longevity of your stained wood. 
-                We provide cleaning and re-staining services to keep your wood looking new.
-              </p>
-            </div>
-  
-            <div>
-              <h2 className="text-2xl font-semibold mb-2">Oil-Based Penetrating Stains</h2>
-              <p>
-                We use professional contractor-grade stains that deeply penetrate the wood, providing superior durability compared to hardware store brands.
-              </p>
-            </div>
+  return (
+    <section>
+      {/* Background image top banner */}
+      <div className="bg-cover bg-center h-64" style={{ backgroundImage: `url('/images/cleaning.jpg')` }}></div>
+
+      {/* Services content */}
+      <div className="container mx-auto p-6">
+        <h1 className="text-4xl font-bold mb-12 text-center text-[#4B3621]">Our Services</h1>
+
+        {/* Main services description */}
+        <div className="space-y-12 mb-16">
+          <div>
+            <h2 className="text-3xl font-semibold mb-4 text-[#4B3621]">Maintenance Service</h2>
+            <p className="text-gray-700">
+              Regular maintenance every 2–4 years is crucial for the longevity of your stained wood.
+              We offer professional cleaning and re-staining services to keep your outdoor spaces looking their best.
+            </p>
           </div>
-  
-          {/* Three Step Process Cards */}
-          <div className="text-center mb-8">
-            <h2 className="text-2xl font-bold mb-4">Our 3-Step Process</h2>
-          </div>
-  
-          <div className="grid md:grid-cols-3 gap-8">
-            {/* Step 1 */}
-            <div className="bg-white shadow-md rounded-lg p-6 hover:shadow-xl transition">
-              <div className="text-4xl font-bold text-red-600 mb-4">1</div>
-              <h3 className="text-xl font-semibold mb-2">Strip Coatings</h3>
-              <p>We carefully remove old coatings to expose the natural wood grain, preparing it for a fresh new finish.</p>
-            </div>
-  
-            {/* Step 2 */}
-            <div className="bg-white shadow-md rounded-lg p-6 hover:shadow-xl transition">
-              <div className="text-4xl font-bold text-red-600 mb-4">2</div>
-              <h3 className="text-xl font-semibold mb-2">Wash & Brighten</h3>
-              <p>We clean and brighten the wood surface to restore its natural beauty before applying stain.</p>
-            </div>
-  
-            {/* Step 3 */}
-            <div className="bg-white shadow-md rounded-lg p-6 hover:shadow-xl transition">
-              <div className="text-4xl font-bold text-red-600 mb-4">3</div>
-              <h3 className="text-xl font-semibold mb-2">Sand & Stain</h3>
-              <p>We perform sanding where necessary and then apply high-quality oil-based stain for long-term protection.</p>
-            </div>
+
+          <div>
+            <h2 className="text-3xl font-semibold mb-4 text-[#4B3621]">Oil-Based Penetrating Stains</h2>
+            <p className="text-gray-700">
+              We use only premium, contractor-grade, oil-based penetrating stains — providing deeper wood absorption
+              and far better durability than hardware store products.
+            </p>
           </div>
         </div>
-      </section>
-    );
-  }
-  
+
+        {/* Three Step Process */}
+        <div className="text-center mb-12">
+          <h2 className="text-3xl font-bold mb-6 text-[#4B3621]">Our 3-Step Process</h2>
+          <p className="text-gray-700 max-w-2xl mx-auto">
+            Every project follows our proven three-step method, ensuring the highest quality and longest-lasting results.
+          </p>
+        </div>
+
+        {/* Step Cards */}
+        <div className="grid md:grid-cols-3 gap-10">
+          {/* Step 1 */}
+          <div className="bg-white shadow-md rounded-2xl p-8 hover:shadow-xl transition">
+            <div className="text-7xl font-extrabold text-[#4B3621] mb-6">1</div>
+            <h3 className="text-2xl font-semibold mb-4 text-[#4B3621]">Strip Coatings</h3>
+            <p className="text-gray-700">
+              Carefully remove old stains, paints, and sealers to reveal the natural wood underneath — essential for perfect adhesion and results.
+            </p>
+          </div>
+
+          {/* Step 2 */}
+          <div className="bg-white shadow-md rounded-2xl p-8 hover:shadow-xl transition">
+            <div className="text-7xl font-extrabold text-[#4B3621] mb-6">2</div>
+            <h3 className="text-2xl font-semibold mb-4 text-[#4B3621]">Wash & Brighten</h3>
+            <p className="text-gray-700">
+              Deep-clean the wood and brighten its tone, neutralizing old residues and restoring its true, vibrant character.
+            </p>
+          </div>
+
+          {/* Step 3 */}
+          <div className="bg-white shadow-md rounded-2xl p-8 hover:shadow-xl transition">
+            <div className="text-7xl font-extrabold text-[#4B3621] mb-6">3</div>
+            <h3 className="text-2xl font-semibold mb-4 text-[#4B3621]">Sand & Stain</h3>
+            <p className="text-gray-700">
+              Where needed, we sand to smooth imperfections. Then we apply a rich, deep-penetrating stain for long-term beauty and protection.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
