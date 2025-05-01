@@ -6,6 +6,7 @@ import Contact from './pages/Contact';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 import Quote from './components/Quote'; 
+import Quotes from './pages/admin/Quotes';
 
 export default function App() {
   return (
@@ -19,6 +20,7 @@ export default function App() {
             <Route path="/services" element={<Services />} />
             <Route path="/contact" element={<Contact />} />
             <Route path="/quote" element={<Quote />} />
+            <Route path="/admin/quotes" element={<Quotes />} />
           </Routes>
         </main>
         <Footer />

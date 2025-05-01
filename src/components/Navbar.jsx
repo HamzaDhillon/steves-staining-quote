@@ -20,6 +20,8 @@ export default function Navbar() {
             </h2>
           </div>
         </Link>
+        <Link to="/admin/quotes" className="text-sm text-gray-500 hover:underline">Admin Login</Link>
+
 
         {/* Navigation + Button */}
         <div className="flex items-center space-x-6">

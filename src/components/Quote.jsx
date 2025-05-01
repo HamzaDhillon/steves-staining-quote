@@ -1,6 +1,7 @@
 // src/pages/Quote.jsx
 import { useState } from 'react';
 import { jsPDF } from "jspdf";
+import { supabase } from '../lib/supabase';
 
 export default function Quote() {
   const [projectType, setProjectType] = useState('');
@@ -9,29 +10,85 @@ export default function Quote() {
   const [services, setServices] = useState([]);
   const [photos, setPhotos] = useState([]);
 
+  const [customerName, setCustomerName] = useState('');
+  const [customerEmail, setCustomerEmail] = useState('');
+  const [customerPhone, setCustomerPhone] = useState('');
+  const [customerAddress, setCustomerAddress] = useState('');
+
   const handleServiceChange = (service) => {
-    if (services.includes(service)) {
-      setServices(services.filter((s) => s !== service));
-    } else {
-      setServices([...services, service]);
-    }
+    setServices((prev) =>
+      prev.includes(service) ? prev.filter((s) => s !== service) : [...prev, service]
+    );
   };
 
   const handlePhotoUpload = (e) => {
-    const files = Array.from(e.target.files).slice(0, 5); // Limit to 5 photos
+    const files = Array.from(e.target.files).slice(0, 5);
     setPhotos(files);
   };
 
-  const handleSubmit = (e) => {
+  const uploadPhotos = async () => {
+    const uploadedUrls = [];
+  
+    for (const photo of photos) {
+      const fileExt = photo.name.split('.').pop();
+      const fileName = `${Date.now()}-${Math.random().toString().slice(2)}.${fileExt}`;
+      const filePath = `${fileName}`;
+  
+      const { error: uploadError } = await supabase.storage
+        .from('quote-photos')
+        .upload(filePath, photo, {
+          contentType: photo.type,
+          upsert: false, // prevent accidental overwrite
+        });
+  
+      if (uploadError) {
+        console.error("Photo upload failed:", uploadError.message);
+        continue;
+      }
+  
+      const { data: publicUrlData } = supabase
+        .storage
+        .from('quote-photos')
+        .getPublicUrl(filePath);
+  
+      uploadedUrls.push(publicUrlData.publicUrl);
+    }
+  
+    return uploadedUrls;
+  };
+
+  const saveQuote = async (subtotal, tax, total, photoUrls) => {
+    const { data, error } = await supabase.from('quotes').insert([
+      {
+        full_name: customerName,
+        email: customerEmail,
+        phone: customerPhone,
+        address: customerAddress,
+        project_type: projectType,
+        deck_data: deckData,         // jsonb
+        fence_data: fenceData,       // jsonb
+        services: services,          // jsonb
+        photo_urls: photoUrls,       // jsonb
+        subtotal,
+        tax,
+        total,
+        status: "Pending",
+      }
+    ]);
+
+    if (error) {
+      console.error("❌ Supabase error:", error.message);
+    } else {
+      console.log("✅ Quote saved successfully:", data);
+    }
+  };
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Pricing Variables
-    let total = 0;
-    let deckPrice = 0;
-    let fencePrice = 0;
-    let washPrice = 0;
 
-    // Deck Calculation
+    let deckPrice = 0, fencePrice = 0, washPrice = 0;
+
     if (projectType === 'Deck' || projectType === 'Both') {
       deckPrice =
         (parseFloat(deckData.squareFootage || 0) * 3) +
@@ -39,86 +96,55 @@ export default function Quote() {
         (parseFloat(deckData.steps || 0) * 8);
     }
 
-    // Fence Calculation
     if (projectType === 'Fence' || projectType === 'Both') {
-      let pricePerFoot = 0;
-      switch (fenceData.height) {
-        case "4": pricePerFoot = 4; break;
-        case "5": pricePerFoot = 5; break;
-        case "6": pricePerFoot = 6; break;
-        case "7": pricePerFoot = 7; break;
-        case "8": pricePerFoot = 8; break;
-        case "9": pricePerFoot = 9; break;
-        case "10": pricePerFoot = 10; break;
-        default: pricePerFoot = 0;
-      }
+      let pricePerFoot = parseFloat(fenceData.height || 0);
       fencePrice = (parseFloat(fenceData.linearFeet || 0) * pricePerFoot);
-      if (fenceData.doubleSided) {
-        fencePrice *= 2;
-      }
+      if (fenceData.doubleSided) fencePrice *= 2;
     }
 
-    // Wash Services
     services.forEach(service => {
-      if (service === "Basic Wash") {
-        washPrice += parseFloat(deckData.squareFootage || 0) * 3;
-      }
-      if (service === "Deep Wash") {
-        washPrice += parseFloat(deckData.squareFootage || 0) * 5;
-      }
-      if (service === "Stripping") {
-        washPrice += parseFloat(deckData.squareFootage || 0) * 10;
-      }
+      const sqft = parseFloat(deckData.squareFootage || 0);
+      if (service === "Basic Wash") washPrice += sqft * 3;
+      if (service === "Deep Wash") washPrice += sqft * 5;
+      if (service === "Stripping") washPrice += sqft * 10;
     });
 
     const subtotal = deckPrice + fencePrice + washPrice;
     const tax = subtotal * 0.15;
-    total = subtotal + tax;
+    const total = subtotal + tax;
 
-    // Console Log (optional)
-    console.log("Deck: $" + deckPrice.toFixed(2));
-    console.log("Fence: $" + fencePrice.toFixed(2));
-    console.log("Wash: $" + washPrice.toFixed(2));
-    console.log("Subtotal: $" + subtotal.toFixed(2));
-    console.log("Tax (15%): $" + tax.toFixed(2));
-    console.log("Total: $" + total.toFixed(2));
+    const uploadedUrls = await uploadPhotos();
 
-    // ✨ PDF Generation
     const doc = new jsPDF();
-
-    doc.setFontSize(20);
-    doc.setTextColor("#4B3621");
+    doc.setFontSize(20).setTextColor("#4B3621");
     doc.text("Quote Summary", 20, 20);
-
-    doc.setFontSize(12);
-    doc.setTextColor("#000000");
+    doc.setFontSize(12).setTextColor("#000000");
 
     let y = 40;
-
-    doc.text(`Deck Staining: $${deckPrice.toFixed(2)}`, 20, y);
-    y += 10;
-    doc.text(`Fence Staining: $${fencePrice.toFixed(2)}`, 20, y);
-    y += 10;
-    doc.text(`Washing Services: $${washPrice.toFixed(2)}`, 20, y);
-    y += 10;
-    doc.line(20, y, 190, y); // horizontal line
-    y += 10;
-    doc.text(`Subtotal: $${subtotal.toFixed(2)}`, 20, y);
-    y += 10;
-    doc.text(`Tax (15%): $${tax.toFixed(2)}`, 20, y);
-    y += 10;
-    doc.setFontSize(14);
-    doc.setTextColor("#4B3621");
-    doc.text(`Total: $${total.toFixed(2)}`, 20, y);
-
-    // Footer
-    y += 20;
-    doc.setFontSize(10);
-    doc.setTextColor("#666666");
+    doc.text(`Deck Staining: $${deckPrice.toFixed(2)}`, 20, y); y += 10;
+    doc.text(`Fence Staining: $${fencePrice.toFixed(2)}`, 20, y); y += 10;
+    doc.text(`Washing Services: $${washPrice.toFixed(2)}`, 20, y); y += 10;
+    doc.line(20, y, 190, y); y += 10;
+    doc.text(`Subtotal: $${subtotal.toFixed(2)}`, 20, y); y += 10;
+    doc.text(`Tax (15%): $${tax.toFixed(2)}`, 20, y); y += 10;
+    doc.setFontSize(14).setTextColor("#4B3621");
+    doc.text(`Total: $${total.toFixed(2)}`, 20, y); y += 20;
+    doc.setFontSize(10).setTextColor("#666666");
     doc.text("Thank you for choosing Steve’s Staining Services!", 20, y);
-
-    // Save PDF
     doc.save("Quote.pdf");
+
+    console.log("Saving quote with:", {
+      subtotal,
+      tax,
+      total,
+      customerName,
+      customerEmail,
+      projectType,
+      photoUrls: uploadedUrls
+    });
+    console.log("Form submitted.");
+    console.log("Photos to upload:", photos);
+    await saveQuote(subtotal, tax, total, uploadedUrls);
   };
 
   return (
@@ -126,134 +152,61 @@ export default function Quote() {
       <h1 className="text-4xl font-bold text-center mb-12 text-[#4B3621]">Get Your Instant Quote</h1>
 
       <form onSubmit={handleSubmit} className="space-y-8 bg-white p-8 rounded-xl shadow-lg">
-
         {/* Customer Info */}
-        <div className="space-y-4">
-          <input type="text" placeholder="Full Name" className="w-full border p-3 rounded" required />
-          <input type="email" placeholder="Email Address" className="w-full border p-3 rounded" required />
-          <input type="text" placeholder="Phone Number" className="w-full border p-3 rounded" required />
-          <input type="text" placeholder="Address" className="w-full border p-3 rounded" required />
-        </div>
+        <input type="text" placeholder="Full Name" required className="w-full border p-3 rounded" value={customerName} onChange={(e) => setCustomerName(e.target.value)} />
+        <input type="email" placeholder="Email" required className="w-full border p-3 rounded" value={customerEmail} onChange={(e) => setCustomerEmail(e.target.value)} />
+        <input type="text" placeholder="Phone" required className="w-full border p-3 rounded" value={customerPhone} onChange={(e) => setCustomerPhone(e.target.value)} />
+        <input type="text" placeholder="Address" required className="w-full border p-3 rounded" value={customerAddress} onChange={(e) => setCustomerAddress(e.target.value)} />
 
         {/* Project Type */}
-        <div className="space-y-2">
-          <label className="block font-semibold">Project Type:</label>
-          <select
-            value={projectType}
-            onChange={(e) => setProjectType(e.target.value)}
-            className="w-full border p-3 rounded"
-            required
-          >
-            <option value="">Select...</option>
-            <option value="Deck">Deck</option>
-            <option value="Fence">Fence</option>
-            <option value="Both">Both</option>
-          </select>
-        </div>
+        <select value={projectType} onChange={(e) => setProjectType(e.target.value)} required className="w-full border p-3 rounded">
+          <option value="">Select Project Type</option>
+          <option value="Deck">Deck</option>
+          <option value="Fence">Fence</option>
+          <option value="Both">Both</option>
+        </select>
 
-        {/* Deck Details */}
+        {/* Deck Info */}
         {(projectType === 'Deck' || projectType === 'Both') && (
-          <div className="space-y-2">
-            <label className="block font-semibold">Deck Details:</label>
-            <input
-              type="number"
-              placeholder="Total Square Footage"
-              value={deckData.squareFootage}
-              onChange={(e) => setDeckData({ ...deckData, squareFootage: e.target.value })}
-              className="w-full border p-3 rounded"
-            />
-            <input
-              type="number"
-              placeholder="Total Railing Length (ft)"
-              value={deckData.railingFeet}
-              onChange={(e) => setDeckData({ ...deckData, railingFeet: e.target.value })}
-              className="w-full border p-3 rounded"
-            />
-            <input
-              type="number"
-              placeholder="Total Number of Steps"
-              value={deckData.steps}
-              onChange={(e) => setDeckData({ ...deckData, steps: e.target.value })}
-              className="w-full border p-3 rounded"
-            />
-          </div>
+          <>
+            <input type="number" placeholder="Deck Square Footage" value={deckData.squareFootage} onChange={(e) => setDeckData({ ...deckData, squareFootage: e.target.value })} className="w-full border p-3 rounded" />
+            <input type="number" placeholder="Railing Length (ft)" value={deckData.railingFeet} onChange={(e) => setDeckData({ ...deckData, railingFeet: e.target.value })} className="w-full border p-3 rounded" />
+            <input type="number" placeholder="Number of Steps" value={deckData.steps} onChange={(e) => setDeckData({ ...deckData, steps: e.target.value })} className="w-full border p-3 rounded" />
+          </>
         )}
 
-        {/* Fence Details */}
+        {/* Fence Info */}
         {(projectType === 'Fence' || projectType === 'Both') && (
-          <div className="space-y-2">
-            <label className="block font-semibold">Fence Details:</label>
-            <input
-              type="number"
-              placeholder="Total Linear Feet"
-              value={fenceData.linearFeet}
-              onChange={(e) => setFenceData({ ...fenceData, linearFeet: e.target.value })}
-              className="w-full border p-3 rounded"
-            />
-            <select
-              value={fenceData.height}
-              onChange={(e) => setFenceData({ ...fenceData, height: e.target.value })}
-              className="w-full border p-3 rounded"
-            >
+          <>
+            <input type="number" placeholder="Fence Linear Feet" value={fenceData.linearFeet} onChange={(e) => setFenceData({ ...fenceData, linearFeet: e.target.value })} className="w-full border p-3 rounded" />
+            <select value={fenceData.height} onChange={(e) => setFenceData({ ...fenceData, height: e.target.value })} className="w-full border p-3 rounded">
               <option value="">Select Fence Height</option>
-              <option value="4">4 Feet</option>
-              <option value="5">5 Feet</option>
-              <option value="6">6 Feet</option>
-              <option value="7">7 Feet</option>
-              <option value="8">8 Feet</option>
-              <option value="9">9 Feet</option>
-              <option value="10">10 Feet</option>
+              {[4, 5, 6, 7, 8].map(h => <option key={h} value={h}>{h} ft</option>)}
             </select>
-            <div className="flex items-center space-x-3">
-              <input
-                type="checkbox"
-                checked={fenceData.doubleSided}
-                onChange={(e) => setFenceData({ ...fenceData, doubleSided: e.target.checked })}
-              />
-              <label>Double Sided Staining?</label>
+            <div className="flex items-center gap-2">
+              <input type="checkbox" checked={fenceData.doubleSided} onChange={(e) => setFenceData({ ...fenceData, doubleSided: e.target.checked })} />
+              <label>Double Sided?</label>
             </div>
-          </div>
+          </>
         )}
 
         {/* Services */}
         <div className="space-y-2">
-          <label className="block font-semibold">Additional Services:</label>
-          <div className="flex flex-wrap gap-4">
-            <label className="flex items-center gap-2">
-              <input type="checkbox" onChange={() => handleServiceChange('Basic Wash')} />
-              Basic Wash
+          <label>Services:</label>
+          {["Basic Wash", "Deep Wash", "Stripping"].map(service => (
+            <label key={service} className="block">
+              <input type="checkbox" onChange={() => handleServiceChange(service)} checked={services.includes(service)} />
+              <span className="ml-2">{service}</span>
             </label>
-            <label className="flex items-center gap-2">
-              <input type="checkbox" onChange={() => handleServiceChange('Deep Wash')} />
-              Deep Wash
-            </label>
-            <label className="flex items-center gap-2">
-              <input type="checkbox" onChange={() => handleServiceChange('Stripping')} />
-              Stripping
-            </label>
-          </div>
+          ))}
         </div>
 
-        {/* Photo Upload */}
-        <div className="space-y-2">
-          <label className="block font-semibold">Upload Photos (max 5):</label>
-          <input
-            type="file"
-            multiple
-            accept="image/*"
-            onChange={handlePhotoUpload}
-            className="w-full border p-3 rounded"
-          />
-        </div>
+        {/* Photos */}
+        <input type="file" multiple accept="image/*" onChange={handlePhotoUpload} className="w-full border p-3 rounded" />
 
-        {/* Submit Button */}
-        <button
-          type="submit"
-          className="w-full bg-[#4B3621] hover:bg-[#3a2b1a] text-white py-4 px-6 rounded-full text-lg"
-        >
+        <button type="submit" className="w-full bg-[#4B3621] hover:bg-[#3a2b1a] text-white py-4 px-6 rounded-full text-lg">
           Get My Instant Quote
         </button>
-
       </form>
     </div>
   );
