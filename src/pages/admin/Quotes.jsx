@@ -6,14 +6,16 @@ export default function Quotes() {
     const [quotes, setQuotes] = useState([]);
     const [showAddForm, setShowAddForm] = useState(false);
     const [quoteToEdit, setQuoteToEdit] = useState(null);
-    const [isEditing, setIsEditing] = useState(false);
 
     useEffect(() => {
         fetchQuotes();
     }, []);
 
     const fetchQuotes = async () => {
-        const { data, error } = await supabase.from('quotes').select('*').order('created_at', { ascending: false });
+        const { data, error } = await supabase
+            .from('quotes')
+            .select('*')
+            .order('created_at', { ascending: false });
 
         if (error) console.error(error);
         else setQuotes(data);
@@ -21,7 +23,7 @@ export default function Quotes() {
 
     const deleteQuote = async (id) => {
         await supabase.from('quotes').delete().eq('id', id);
-        fetchQuotes(); // Refresh after delete
+        fetchQuotes();
     };
 
     const markAsPaid = async (id) => {
@@ -38,16 +40,11 @@ export default function Quotes() {
     const handleEdit = async (data) => {
         await supabase.from('quotes').update({ ...data }).eq('id', quoteToEdit.id);
         setQuoteToEdit(null);
-        setIsEditing(false);
         fetchQuotes();
     };
 
-
     return (
-
-
         <div className="container mx-auto p-8">
-
             {/* Add Modal */}
             <QuoteModal
                 isOpen={showAddForm}
@@ -66,7 +63,10 @@ export default function Quotes() {
 
             <div className="flex justify-between items-center mb-6">
                 <h1 className="text-4xl font-bold">All Quotes</h1>
-                <button onClick={() => setShowAddForm(true)} className="bg-[#4B3621] text-white px-4 py-2 rounded">
+                <button
+                    onClick={() => setShowAddForm(true)}
+                    className="bg-[#4B3621] text-white px-4 py-2 rounded"
+                >
                     + Add New Quote
                 </button>
             </div>
@@ -90,13 +90,25 @@ export default function Quotes() {
                             <td className="p-4">{quote.email}</td>
                             <td className="p-4">${quote.total.toFixed(2)}</td>
                             <td className="p-4">{quote.status}</td>
-
                             <td className="p-4 flex gap-2 flex-wrap">
-                                <button onClick={() => markAsPaid(quote.id)} className="bg-green-600 text-white px-3 py-1 rounded">Mark Paid</button>
-                                <button onClick={() => handleEdit(quote)} className="bg-blue-600 text-white px-3 py-1 rounded">Edit</button>
-                                {/* <button onClick={() => handleResend(quote)} className="bg-yellow-500 text-white px-3 py-1 rounded">Resend</button> */}
-                                <button onClick={() => deleteQuote(quote.id)} className="bg-red-600 text-white px-3 py-1 rounded">Delete</button>
-
+                                <button
+                                    onClick={() => markAsPaid(quote.id)}
+                                    className="bg-green-600 text-white px-3 py-1 rounded"
+                                >
+                                    Mark Paid
+                                </button>
+                                <button
+                                    onClick={() => setQuoteToEdit(quote)}
+                                    className="bg-blue-600 text-white px-3 py-1 rounded"
+                                >
+                                    Edit
+                                </button>
+                                <button
+                                    onClick={() => deleteQuote(quote.id)}
+                                    className="bg-red-600 text-white px-3 py-1 rounded"
+                                >
+                                    Delete
+                                </button>
                             </td>
                         </tr>
                     ))}

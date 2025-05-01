@@ -1,7 +1,6 @@
 // QuoteModal.jsx
 import { useState, useEffect } from 'react';
 export default function QuoteModal({ isOpen, onClose, onSubmit, initialData = {}, isEditing = false }) {
-    const data = initialData || {};
     const [form, setForm] = useState({
         full_name: '',
         email: '',

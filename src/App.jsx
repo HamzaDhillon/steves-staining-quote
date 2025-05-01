@@ -5,8 +5,10 @@ import Services from './pages/Services';
 import Contact from './pages/Contact';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
-import Quote from './components/Quote'; 
+import Quote from './components/Quote';
 import Quotes from './pages/admin/Quotes';
+import PricingEditor from './pages/admin/PricingEditor';
+import Dashboard from './pages/admin/Dashboard';
 
 export default function App() {
   return (
@@ -21,6 +23,8 @@ export default function App() {
             <Route path="/contact" element={<Contact />} />
             <Route path="/quote" element={<Quote />} />
             <Route path="/admin/quotes" element={<Quotes />} />
+            <Route path="/admin/pricing" element={<PricingEditor />} />
+            <Route path="/admin/dashboard" element={<Dashboard />} />
           </Routes>
         </main>
         <Footer />
