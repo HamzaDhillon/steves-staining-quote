@@ -1,5 +1,5 @@
 // src/pages/Quote.jsx
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { jsPDF } from "jspdf";
 import { supabase } from '../lib/supabase';
 import { useForm } from 'react-hook-form';
@@ -17,10 +17,24 @@ const schema = yup.object().shape({
 export default function Quote() {
   const { register, handleSubmit, formState: { errors } } = useForm({ resolver: yupResolver(schema) });
   const [projectType, setProjectType] = useState('');
-  const [deckData, setDeckData] = useState({ squareFootage: '', railingFeet: '', steps: '' });
+  const [deckData, setDeckData] = useState({ squareFootage: '', railingFeet: '', steps: '', deckAge: '', previousCoating: '' });
   const [fenceData, setFenceData] = useState({ linearFeet: '', height: '', doubleSided: false });
   const [services, setServices] = useState([]);
   const [photos, setPhotos] = useState([]);
+  const [pricing, setPricing] = useState({});
+
+  useEffect(() => {
+    const fetchPricing = async () => {
+      const { data, error } = await supabase.from("pricing_rules").select("*");
+      if (error) console.error("Pricing fetch error:", error);
+      else {
+        const map = {};
+        data.forEach(p => { map[p.key] = p.value; });
+        setPricing(map);
+      }
+    };
+    fetchPricing();
+  }, []);
 
   const uploadPhotos = async () => {
     const uploadedUrls = [];
@@ -41,18 +55,41 @@ export default function Quote() {
 
   const onSubmit = async (data) => {
     let deckPrice = 0, fencePrice = 0, washPrice = 0;
+    const sqft = parseFloat(deckData.squareFootage || 0);
+    const railing = parseFloat(deckData.railingFeet || 0);
+    const steps = parseFloat(deckData.steps || 0);
+
     if (projectType === 'Deck' || projectType === 'Both') {
-      deckPrice = (parseFloat(deckData.squareFootage || 0) * 3) +
-                  (parseFloat(deckData.railingFeet || 0) * 6) +
-                  (parseFloat(deckData.steps || 0) * 8);
+      // Deck Base Costs
+      deckPrice = (sqft * (pricing.deck_sqft || 0)) +
+        (railing * (pricing.railing_ft || 0)) +
+        (steps * (pricing.step || 0));
+
+      // Deck Age Adjustment
+      if (deckData.deckAge === "1-6 months") deckPrice += sqft * (pricing.deck_age_1_6 || 0);
+      else if (deckData.deckAge === "6-12 months") deckPrice += sqft * (pricing.deck_age_6_12 || 0);
+      else if (deckData.deckAge === "1-5 years") deckPrice += sqft * (pricing.deck_age_1_5 || 0);
+      else if (deckData.deckAge === "5+ years") deckPrice += sqft * (pricing.deck_age_5_plus || 0);
+
+      // Previous Coating Adjustment
+      if (deckData.previousCoating === "None") deckPrice += sqft * (pricing.previous_none || 0);
+      else if (deckData.previousCoating === "Paint") deckPrice += sqft * (pricing.previous_paint || 0);
+      else if (deckData.previousCoating === "Stain") deckPrice += sqft * (pricing.previous_stain || 0);
     }
+
     if (projectType === 'Fence' || projectType === 'Both') {
-      let pricePerFoot = parseFloat(fenceData.height || 0);
-      fencePrice = parseFloat(fenceData.linearFeet || 0) * pricePerFoot;
-      if (fenceData.doubleSided) fencePrice *= 2;
+      const fenceFeet = parseFloat(fenceData.linearFeet || 0);
+      const fenceHeight = parseFloat(fenceData.height || 0);
+      const area = fenceFeet * fenceHeight;
+
+      fencePrice = area * (pricing.fence_sqft || 0);
+      if (fenceData.doubleSided) {
+        fencePrice *= (pricing.fence_double || 2);
+      }
     }
+
+    // Optional Services
     services.forEach(service => {
-      const sqft = parseFloat(deckData.squareFootage || 0);
       if (service === "Basic Wash") washPrice += sqft * 3;
       if (service === "Deep Wash") washPrice += sqft * 5;
       if (service === "Stripping") washPrice += sqft * 10;
@@ -62,26 +99,94 @@ export default function Quote() {
     const tax = subtotal * 0.15;
     const total = subtotal + tax;
     const uploadedUrls = await uploadPhotos();
-
+    //pdf generation
     const doc = new jsPDF();
-    doc.setFontSize(20).setTextColor("#4B3621");
-    doc.text("Quote Summary", 20, 20);
-    doc.setFontSize(12).setTextColor("#000000");
-    let y = 40;
-    doc.text(`Deck Staining: $${deckPrice.toFixed(2)}`, 20, y); y += 10;
-    doc.text(`Fence Staining: $${fencePrice.toFixed(2)}`, 20, y); y += 10;
-    doc.text(`Washing Services: $${washPrice.toFixed(2)}`, 20, y); y += 10;
-    doc.line(20, y, 190, y); y += 10;
-    doc.text(`Subtotal: $${subtotal.toFixed(2)}`, 20, y); y += 10;
-    doc.text(`Tax (15%): $${tax.toFixed(2)}`, 20, y); y += 10;
-    doc.setFontSize(14).setTextColor("#4B3621");
-    doc.text(`Total: $${total.toFixed(2)}`, 20, y); y += 20;
-    doc.setFontSize(10).setTextColor("#666666");
-    doc.text("Thank you for choosing Steve’s Staining Services!", 20, y);
-    doc.save("Quote.pdf");
 
-    await supabase.from('quotes').insert([{ ...data, project_type: projectType, deck_data: deckData, fence_data: fenceData, services, photo_urls: uploadedUrls, subtotal, tax, total, status: 'Pending' }]);
+    // Text Header (instead of logo image)
+    doc.setFontSize(22);
+    doc.setFont('helvetica', 'bold');
+    doc.text('Instant Estimates', doc.internal.pageSize.getWidth() / 2, 20, { align: 'center' });
+
+    let y = 30; // Move content below the header
+
+    // Divider
+    doc.setDrawColor(200);
+    doc.line(20, y, 190, y);
+    y += 10;
+
+    // Client Info
+    doc.setFontSize(12).setTextColor(0).setFont('helvetica', 'bold');
+    doc.text("Customer Details", 20, y); y += 7;
+    doc.setFont('helvetica', 'normal');
+    doc.text(`Name: ${data.full_name}`, 20, y); y += 6;
+    doc.text(`Email: ${data.email}`, 20, y); y += 6;
+    doc.text(`Phone: ${data.phone}`, 20, y); y += 6;
+    doc.text(`Address: ${data.address}`, 20, y); y += 10;
+
+    // Project Info
+    doc.setFont('helvetica', 'bold').text("Project Details", 20, y); y += 7;
+    doc.setFont('helvetica', 'normal');
+    doc.text(`Type: ${projectType}`, 20, y); y += 6;
+    if (projectType === 'Deck' || projectType === 'Both') {
+      doc.text(`Deck Size: ${deckData.squareFootage} sq. ft`, 20, y); y += 6;
+      doc.text(`Railing: ${deckData.railingFeet} ft`, 20, y); y += 6;
+      doc.text(`Steps: ${deckData.steps}`, 20, y); y += 6;
+      doc.text(`Deck Age: ${deckData.deckAge}`, 20, y); y += 6;
+      doc.text(`Previous Coating: ${deckData.previousCoating}`, 20, y); y += 6;
+    }
+    if (projectType === 'Fence' || projectType === 'Both') {
+      doc.text(`Fence: ${fenceData.linearFeet} ft x ${fenceData.height} ft`, 20, y); y += 6;
+      doc.text(`Double Sided: ${fenceData.doubleSided ? 'Yes' : 'No'}`, 20, y); y += 6;
+    }
+    if (services.length > 0) {
+      doc.text(`Extra Services: ${services.join(', ')}`, 20, y); y += 6;
+    }
+
+    y += 10;
+    doc.line(20, y, 190, y);
+    y += 10;
+
+    // Estimate Breakdown
+    doc.setFont('helvetica', 'bold').text("Estimate Summary", 20, y); y += 8;
+    const breakdown = [
+      { label: "Deck Staining", value: deckPrice },
+      { label: "Fence Staining", value: fencePrice },
+      { label: "Washing Services", value: washPrice },
+      { label: "Subtotal", value: subtotal },
+      { label: "Tax (15%)", value: tax },
+      { label: "Total", value: total, bold: true }
+    ];
+
+    breakdown.forEach(item => {
+      doc.setFont('helvetica', item.bold ? 'bold' : 'normal');
+      doc.text(item.label, 20, y);
+      doc.text(`$${item.value.toFixed(2)}`, 180, y, { align: 'right' });
+      y += 8;
+    });
+
+    y += 12;
+    doc.setFontSize(10).setTextColor(100);
+    doc.text("Thank you for choosing Instant Estimates.", 20, y); y += 5;
+    doc.text("For support, contact info@instantestimates.com", 20, y);
+    doc.save("Instant_Estimate.pdf");
+
+    // Save quote to Supabase
+    await supabase.from('quotes').insert([{
+      ...data,
+      project_type: projectType,
+      deck_data: deckData,
+      fence_data: fenceData,
+      services,
+      photo_urls: uploadedUrls,
+      subtotal,
+      tax,
+      total,
+      status: 'Pending',
+      deck_age: deckData.deckAge,
+      previous_coating: deckData.previousCoating
+    }]);
   };
+
 
   return (
     <div className="container mx-auto px-6 py-20">
@@ -117,6 +222,29 @@ export default function Quote() {
             <input type="number" placeholder="Deck Square Footage" className="w-full border p-3 rounded" value={deckData.squareFootage} onChange={(e) => setDeckData({ ...deckData, squareFootage: e.target.value })} />
             <input type="number" placeholder="Railing Length (ft)" className="w-full border p-3 rounded" value={deckData.railingFeet} onChange={(e) => setDeckData({ ...deckData, railingFeet: e.target.value })} />
             <input type="number" placeholder="Number of Steps" className="w-full border p-3 rounded" value={deckData.steps} onChange={(e) => setDeckData({ ...deckData, steps: e.target.value })} />
+            <select
+              className="w-full border p-3 rounded"
+              value={deckData.deckAge}
+              onChange={(e) => setDeckData({ ...deckData, deckAge: e.target.value })}
+            >
+              <option value="">Select Deck Age</option>
+              <option value="1-6 months">1–6 months</option>
+              <option value="6-12 months">6–12 months</option>
+              <option value="1-5 years">1–5 years</option>
+              <option value="5+ years">5+ years</option>
+            </select>
+
+            <select
+              className="w-full border p-3 rounded"
+              value={deckData.previousCoating}
+              onChange={(e) => setDeckData({ ...deckData, previousCoating: e.target.value })}
+            >
+              <option value="">Select Previous Coating</option>
+              <option value="None">None</option>
+              <option value="Paint">Paint</option>
+              <option value="Stain">Stain</option>
+            </select>
+
           </>
         )}
         {(projectType === 'Fence' || projectType === 'Both') && (
@@ -148,4 +276,5 @@ export default function Quote() {
       </form>
     </div>
   );
-}
+};
+

@@ -13,7 +13,7 @@ export default function Home() {
       {/* Hero Section */}
       <section
         className="min-h-screen bg-cover bg-center flex flex-col justify-center items-center text-center relative"
-        style={{ backgroundImage: "url('/images/sea-side.jpg')" }}
+        style={{ backgroundImage: "url('/images/wood.png')" }}
       >
         <div className="absolute inset-0 bg-black bg-opacity-40"></div>
         <div className="relative z-10 p-6 bg-white bg-opacity-70 rounded-lg shadow-lg max-w-xl mx-auto">
