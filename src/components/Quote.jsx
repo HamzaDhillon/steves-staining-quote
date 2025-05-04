@@ -1,4 +1,4 @@
-// src/pages/Quote.jsx
+// Updated Quote.jsx with separate deck and fence preparation
 import { useState, useEffect } from 'react';
 import { jsPDF } from "jspdf";
 import { supabase } from '../lib/supabase';
@@ -18,7 +18,7 @@ export default function Quote() {
   const { register, handleSubmit, formState: { errors } } = useForm({ resolver: yupResolver(schema) });
   const [projectType, setProjectType] = useState('');
   const [deckData, setDeckData] = useState({ squareFootage: '', railingFeet: '', steps: '', deckAge: '', previousCoating: '' });
-  const [fenceData, setFenceData] = useState({ linearFeet: '', height: '', doubleSided: false });
+  const [fenceData, setFenceData] = useState({ linearFeet: '', height: '', doubleSided: false, fenceAge: '', fenceCoating: '' });
   const [services, setServices] = useState([]);
   const [photos, setPhotos] = useState([]);
   const [pricing, setPricing] = useState({});
@@ -54,67 +54,60 @@ export default function Quote() {
   };
 
   const onSubmit = async (data) => {
-    let deckPrice = 0, fencePrice = 0, washPrice = 0;
+    let deckStaining = 0, deckPreparation = 0, fenceStaining = 0, fencePreparation = 0, washPrice = 0;
     const sqft = parseFloat(deckData.squareFootage || 0);
     const railing = parseFloat(deckData.railingFeet || 0);
     const steps = parseFloat(deckData.steps || 0);
 
     if (projectType === 'Deck' || projectType === 'Both') {
-      // Deck Base Costs
-      deckPrice = (sqft * (pricing.deck_sqft || 0)) +
-        (railing * (pricing.railing_ft || 0)) +
-        (steps * (pricing.step || 0));
+      deckStaining = (sqft * (pricing.deck_sqft || 0)) +
+                     (railing * (pricing.railing_ft || 0)) +
+                     (steps * (pricing.step || 0));
 
-      // Deck Age Adjustment
-      if (deckData.deckAge === "1-6 months") deckPrice += sqft * (pricing.deck_age_1_6 || 0);
-      else if (deckData.deckAge === "6-12 months") deckPrice += sqft * (pricing.deck_age_6_12 || 0);
-      else if (deckData.deckAge === "1-5 years") deckPrice += sqft * (pricing.deck_age_1_5 || 0);
-      else if (deckData.deckAge === "5+ years") deckPrice += sqft * (pricing.deck_age_5_plus || 0);
+      if (deckData.deckAge === "1-6 months") deckPreparation += sqft * (pricing.deck_age_1_6 || 0);
+      else if (deckData.deckAge === "6-12 months") deckPreparation += sqft * (pricing.deck_age_6_12 || 0);
+      else if (deckData.deckAge === "1-5 years") deckPreparation += sqft * (pricing.deck_age_1_5 || 0);
+      else if (deckData.deckAge === "5+ years") deckPreparation += sqft * (pricing.deck_age_5_plus || 0);
 
-      // Previous Coating Adjustment
-      if (deckData.previousCoating === "None") deckPrice += sqft * (pricing.previous_none || 0);
-      else if (deckData.previousCoating === "Paint") deckPrice += sqft * (pricing.previous_paint || 0);
-      else if (deckData.previousCoating === "Stain") deckPrice += sqft * (pricing.previous_stain || 0);
+      if (deckData.previousCoating === "None") deckPreparation += sqft * (pricing.previous_none || 0);
+      else if (deckData.previousCoating === "Paint") deckPreparation += sqft * (pricing.previous_paint || 0);
+      else if (deckData.previousCoating === "Stain") deckPreparation += sqft * (pricing.previous_stain || 0);
     }
 
     if (projectType === 'Fence' || projectType === 'Both') {
       const fenceFeet = parseFloat(fenceData.linearFeet || 0);
       const fenceHeight = parseFloat(fenceData.height || 0);
       const area = fenceFeet * fenceHeight;
+      fenceStaining = area * (pricing.fence_sqft || 0);
+      if (fenceData.doubleSided) fenceStaining *= (pricing.fence_double || 2);
 
-      fencePrice = area * (pricing.fence_sqft || 0);
-      if (fenceData.doubleSided) {
-        fencePrice *= (pricing.fence_double || 2);
-      }
+      if (fenceData.fenceAge === "1-6 months") fencePreparation += area * (pricing.deck_age_1_6 || 0);
+      else if (fenceData.fenceAge === "6-12 months") fencePreparation += area * (pricing.deck_age_6_12 || 0);
+      else if (fenceData.fenceAge === "1-5 years") fencePreparation += area * (pricing.deck_age_1_5 || 0);
+      else if (fenceData.fenceAge === "5+ years") fencePreparation += area * (pricing.deck_age_5_plus || 0);
+
+      if (fenceData.fenceCoating === "None") fencePreparation += area * (pricing.previous_none || 0);
+      else if (fenceData.fenceCoating === "Paint") fencePreparation += area * (pricing.previous_paint || 0);
+      else if (fenceData.fenceCoating === "Stain") fencePreparation += area * (pricing.previous_stain || 0);
     }
 
-    // Optional Services
     services.forEach(service => {
       if (service === "Basic Wash") washPrice += sqft * 3;
       if (service === "Deep Wash") washPrice += sqft * 5;
       if (service === "Stripping") washPrice += sqft * 10;
     });
 
-    const subtotal = deckPrice + fencePrice + washPrice;
+    const subtotal = deckStaining + deckPreparation + fenceStaining + fencePreparation + washPrice;
     const tax = subtotal * 0.15;
     const total = subtotal + tax;
     const uploadedUrls = await uploadPhotos();
-    //pdf generation
+
     const doc = new jsPDF();
-
-    // Text Header (instead of logo image)
-    doc.setFontSize(22);
-    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(22).setFont('helvetica', 'bold');
     doc.text('Instant Estimates', doc.internal.pageSize.getWidth() / 2, 20, { align: 'center' });
+    let y = 30;
+    doc.setDrawColor(200).line(20, y, 190, y); y += 10;
 
-    let y = 30; // Move content below the header
-
-    // Divider
-    doc.setDrawColor(200);
-    doc.line(20, y, 190, y);
-    y += 10;
-
-    // Client Info
     doc.setFontSize(12).setTextColor(0).setFont('helvetica', 'bold');
     doc.text("Customer Details", 20, y); y += 7;
     doc.setFont('helvetica', 'normal');
@@ -123,7 +116,6 @@ export default function Quote() {
     doc.text(`Phone: ${data.phone}`, 20, y); y += 6;
     doc.text(`Address: ${data.address}`, 20, y); y += 10;
 
-    // Project Info
     doc.setFont('helvetica', 'bold').text("Project Details", 20, y); y += 7;
     doc.setFont('helvetica', 'normal');
     doc.text(`Type: ${projectType}`, 20, y); y += 6;
@@ -137,25 +129,26 @@ export default function Quote() {
     if (projectType === 'Fence' || projectType === 'Both') {
       doc.text(`Fence: ${fenceData.linearFeet} ft x ${fenceData.height} ft`, 20, y); y += 6;
       doc.text(`Double Sided: ${fenceData.doubleSided ? 'Yes' : 'No'}`, 20, y); y += 6;
+      doc.text(`Fence Age: ${fenceData.fenceAge}`, 20, y); y += 6;
+      doc.text(`Fence Coating: ${fenceData.fenceCoating}`, 20, y); y += 6;
     }
     if (services.length > 0) {
       doc.text(`Extra Services: ${services.join(', ')}`, 20, y); y += 6;
     }
 
     y += 10;
-    doc.line(20, y, 190, y);
-    y += 10;
-
-    // Estimate Breakdown
+    doc.line(20, y, 190, y); y += 10;
     doc.setFont('helvetica', 'bold').text("Estimate Summary", 20, y); y += 8;
-    const breakdown = [
-      { label: "Deck Staining", value: deckPrice },
-      { label: "Fence Staining", value: fencePrice },
-      { label: "Washing Services", value: washPrice },
-      { label: "Subtotal", value: subtotal },
-      { label: "Tax (15%)", value: tax },
-      { label: "Total", value: total, bold: true }
-    ];
+
+    const breakdown = [];
+    if (deckStaining > 0) breakdown.push({ label: "Deck Staining", value: deckStaining });
+    if (deckPreparation > 0) breakdown.push({ label: "Deck Preparation", value: deckPreparation });
+    if (fenceStaining > 0) breakdown.push({ label: "Fence Staining", value: fenceStaining });
+    if (fencePreparation > 0) breakdown.push({ label: "Fence Preparation", value: fencePreparation });
+    if (washPrice > 0) breakdown.push({ label: "Washing Services", value: washPrice });
+    breakdown.push({ label: "Subtotal", value: subtotal });
+    breakdown.push({ label: "Tax (15%)", value: tax });
+    breakdown.push({ label: "Total", value: total, bold: true });
 
     breakdown.forEach(item => {
       doc.setFont('helvetica', item.bold ? 'bold' : 'normal');
@@ -170,23 +163,32 @@ export default function Quote() {
     doc.text("For support, contact info@instantestimates.com", 20, y);
     doc.save("Instant_Estimate.pdf");
 
-    // Save quote to Supabase
-    await supabase.from('quotes').insert([{
+    const { error } = await supabase.from('quotes').insert([{
       ...data,
       project_type: projectType,
       deck_data: deckData,
       fence_data: fenceData,
       services,
       photo_urls: uploadedUrls,
+      deck_staining: deckStaining,
+      deck_preparation: deckPreparation,
+      fence_staining: fenceStaining,
+      fence_preparation: fencePreparation,
       subtotal,
       tax,
       total,
       status: 'Pending',
       deck_age: deckData.deckAge,
-      previous_coating: deckData.previousCoating
+      previous_coating: deckData.previousCoating,
+      fence_age: fenceData.fenceAge,
+      fence_coating: fenceData.fenceCoating
     }]);
-  };
 
+    if (error) {
+      console.error("Supabase insert error:", error.message);
+      alert("Error saving your quote. Please check the console for details.");
+    }
+  };
 
   return (
     <div className="container mx-auto px-6 py-20">
@@ -217,36 +219,28 @@ export default function Quote() {
           </select>
           {errors.project_type && <p className="text-red-500 text-sm">{errors.project_type.message}</p>}
         </div>
+
         {(projectType === 'Deck' || projectType === 'Both') && (
           <>
             <input type="number" placeholder="Deck Square Footage" className="w-full border p-3 rounded" value={deckData.squareFootage} onChange={(e) => setDeckData({ ...deckData, squareFootage: e.target.value })} />
             <input type="number" placeholder="Railing Length (ft)" className="w-full border p-3 rounded" value={deckData.railingFeet} onChange={(e) => setDeckData({ ...deckData, railingFeet: e.target.value })} />
             <input type="number" placeholder="Number of Steps" className="w-full border p-3 rounded" value={deckData.steps} onChange={(e) => setDeckData({ ...deckData, steps: e.target.value })} />
-            <select
-              className="w-full border p-3 rounded"
-              value={deckData.deckAge}
-              onChange={(e) => setDeckData({ ...deckData, deckAge: e.target.value })}
-            >
+            <select className="w-full border p-3 rounded" value={deckData.deckAge} onChange={(e) => setDeckData({ ...deckData, deckAge: e.target.value })}>
               <option value="">Select Deck Age</option>
               <option value="1-6 months">1–6 months</option>
               <option value="6-12 months">6–12 months</option>
               <option value="1-5 years">1–5 years</option>
               <option value="5+ years">5+ years</option>
             </select>
-
-            <select
-              className="w-full border p-3 rounded"
-              value={deckData.previousCoating}
-              onChange={(e) => setDeckData({ ...deckData, previousCoating: e.target.value })}
-            >
+            <select className="w-full border p-3 rounded" value={deckData.previousCoating} onChange={(e) => setDeckData({ ...deckData, previousCoating: e.target.value })}>
               <option value="">Select Previous Coating</option>
               <option value="None">None</option>
               <option value="Paint">Paint</option>
               <option value="Stain">Stain</option>
             </select>
-
           </>
         )}
+
         {(projectType === 'Fence' || projectType === 'Both') && (
           <>
             <input type="number" placeholder="Fence Linear Feet" className="w-full border p-3 rounded" value={fenceData.linearFeet} onChange={(e) => setFenceData({ ...fenceData, linearFeet: e.target.value })} />
@@ -258,23 +252,38 @@ export default function Quote() {
               <input type="checkbox" checked={fenceData.doubleSided} onChange={(e) => setFenceData({ ...fenceData, doubleSided: e.target.checked })} />
               <label>Double Sided?</label>
             </div>
+            <select className="w-full border p-3 rounded" value={fenceData.fenceAge} onChange={(e) => setFenceData({ ...fenceData, fenceAge: e.target.value })}>
+              <option value="">Select Fence Age</option>
+              <option value="1-6 months">1–6 months</option>
+              <option value="6-12 months">6–12 months</option>
+              <option value="1-5 years">1–5 years</option>
+              <option value="5+ years">5+ years</option>
+            </select>
+            <select className="w-full border p-3 rounded" value={fenceData.fenceCoating} onChange={(e) => setFenceData({ ...fenceData, fenceCoating: e.target.value })}>
+              <option value="">Select Previous Coating</option>
+              <option value="None">None</option>
+              <option value="Paint">Paint</option>
+              <option value="Stain">Stain</option>
+            </select>
           </>
         )}
+
         <div className="space-y-2">
           <label>Services:</label>
-          {["Basic Wash", "Deep Wash", "Stripping"].map(service => (
+          {['Basic Wash', 'Deep Wash', 'Stripping'].map(service => (
             <label key={service} className="block">
               <input type="checkbox" onChange={() => setServices(prev => prev.includes(service) ? prev.filter(s => s !== service) : [...prev, service])} checked={services.includes(service)} />
               <span className="ml-2">{service}</span>
             </label>
           ))}
         </div>
+
         <input type="file" multiple accept="image/*" onChange={(e) => setPhotos(Array.from(e.target.files).slice(0, 5))} className="w-full border p-3 rounded" />
+
         <button type="submit" className="w-full bg-[#4B3621] hover:bg-[#3a2b1a] text-white py-4 px-6 rounded-full text-lg">
           Get My Instant Quote
         </button>
       </form>
     </div>
   );
-};
-
+}
