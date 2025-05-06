@@ -1,5 +1,6 @@
 // src/pages/About.jsx
 import { useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import AOS from 'aos';
 import 'aos/dist/aos.css';
 
@@ -11,7 +12,7 @@ export default function About() {
   return (
     <div className="text-gray-800">
 
-      {/* Top Hero Banner */}
+      {/* Hero Section */}
       <section className="h-80 bg-cover bg-center flex items-center justify-center relative" style={{ backgroundImage: "url('/images/hero-bg.jpg')" }}>
         <div className="absolute inset-0 bg-black bg-opacity-40"></div>
         <div className="relative z-10 text-center">
@@ -20,9 +21,9 @@ export default function About() {
         </div>
       </section>
 
-      {/* Main About Section */}
+      {/* Content Section */}
       <section className="py-20 bg-white">
-        <div className="container mx-auto px-6 space-y-24">
+        <div className="container mx-auto px-6 max-w-screen-xl space-y-24">
 
           {/* Who We Are */}
           <div className="flex flex-col md:flex-row items-center gap-12">
@@ -45,9 +46,6 @@ export default function About() {
           <div className="flex flex-col md:flex-row-reverse items-center gap-12">
             <div className="md:w-1/2" data-aos="fade-left">
               <h2 className="text-4xl font-bold mb-6 text-[#4B3621]">Our 3-Step Process</h2>
-              <p className="text-gray-700 mb-4">
-                Every restoration follows our proven 3-step method:
-              </p>
               <ul className="text-gray-700 list-disc list-inside space-y-2">
                 <li><span className="font-semibold text-[#4B3621]">Strip Coatings:</span> Removing old stains and sealers to reveal the natural wood grain.</li>
                 <li><span className="font-semibold text-[#4B3621]">Wash & Brighten:</span> Cleaning and restoring the wood’s natural vibrancy.</li>
@@ -81,15 +79,14 @@ export default function About() {
 
       {/* Call to Action */}
       <section className="py-20 bg-gray-100 text-center">
-        <div className="container mx-auto px-6">
-          <h2 className="text-3xl font-bold mb-6 text-[#4B3621]">Ready to Transform Your Deck or Fence?</h2>
+        <div className="container mx-auto px-6 max-w-screen-xl">
+          <h2 className="text-3xl md:text-4xl font-bold mb-6 text-[#4B3621]">Ready to Transform Your Deck or Fence?</h2>
           <p className="text-gray-700 mb-8">Contact us today for a free estimate and let’s bring your outdoor spaces back to life.</p>
-          <a href="/contact" className="inline-block bg-[#4B3621] hover:bg-[#3a2b1a] text-white py-3 px-8 rounded-full text-lg transition">
-            Get an Estimate
-          </a>
+                <Link to="/quote" className="bg-[#4B3621] hover:bg-[#3a2b1a] text-white py-3 px-8 rounded-full text-lg transition">
+                       Get an Estimate
+                     </Link>
         </div>
       </section>
-
     </div>
   );
 }

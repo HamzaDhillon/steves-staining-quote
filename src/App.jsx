@@ -9,6 +9,8 @@ import Quote from './components/Quote';
 import Quotes from './pages/admin/Quotes';
 import PricingEditor from './pages/admin/PricingEditor';
 import Dashboard from './pages/admin/Dashboard';
+import QuoteDetails from './pages/admin/QuoteDetails';
+import QuoteEdit from "./pages/admin/QuoteEdit";
 
 export default function App() {
   return (
@@ -25,6 +27,9 @@ export default function App() {
             <Route path="/admin/quotes" element={<Quotes />} />
             <Route path="/admin/pricing" element={<PricingEditor />} />
             <Route path="/admin/dashboard" element={<Dashboard />} />
+            <Route path="/admin/quotes/:id" element={<QuoteDetails />} />
+            <Route path="/admin/quotes/edit/:id" element={<QuoteEdit />} /> 
+
           </Routes>
         </main>
         <Footer />

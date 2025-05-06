@@ -1,119 +1,193 @@
-import { useEffect, useState } from "react";
+// src/pages/admin/Quotes.jsx
+import { useEffect, useState, useCallback } from "react";
 import { supabase } from "../../lib/supabase";
-import QuoteModal from '../../components/QuoteModal';
+import QuoteModal from "../../components/QuoteModal";
+import { Link } from 'react-router-dom';
 
 export default function Quotes() {
-    const [quotes, setQuotes] = useState([]);
-    const [showAddForm, setShowAddForm] = useState(false);
-    const [quoteToEdit, setQuoteToEdit] = useState(null);
+  const [quotes, setQuotes] = useState([]);
+  const [quoteToEdit, setQuoteToEdit] = useState(null);
+  const [showAddForm, setShowAddForm] = useState(false);
 
-    useEffect(() => {
-        fetchQuotes();
-    }, []);
+  const [sortField, setSortField] = useState("created_at");
+  const [sortOrder, setSortOrder] = useState("desc");
+  const [statusFilter, setStatusFilter] = useState("");
+  const [searchTerm, setSearchTerm] = useState("");
 
-    const fetchQuotes = async () => {
-        const { data, error } = await supabase
-            .from('quotes')
-            .select('*')
-            .order('created_at', { ascending: false });
 
-        if (error) console.error(error);
-        else setQuotes(data);
-    };
 
-    const deleteQuote = async (id) => {
-        await supabase.from('quotes').delete().eq('id', id);
-        fetchQuotes();
-    };
+  const fetchQuotes = useCallback(async () => {
+    let query = supabase.from("quotes").select("*");
+    if (statusFilter) query = query.eq("status", statusFilter);
+    const { data, error } = await query.order(sortField, {
+      ascending: sortOrder === "asc",
+    });
+    if (error) console.error("Fetch error:", error.message);
+    else setQuotes(data);
+  }, [sortField, sortOrder, statusFilter]);
 
-    const markAsPaid = async (id) => {
-        await supabase.from('quotes').update({ status: 'Paid' }).eq('id', id);
-        fetchQuotes();
-    };
+  useEffect(() => {
+    fetchQuotes();
+  }, [fetchQuotes]);
 
-    const handleAdd = async (data) => {
-        await supabase.from('quotes').insert([{ ...data, status: 'Pending' }]);
-        setShowAddForm(false);
-        fetchQuotes();
-    };
+  const handleAdd = async (data) => {
+    await supabase.from("quotes").insert([{ ...data, status: "Pending" }]);
+    setShowAddForm(false);
+    fetchQuotes();
+  };
 
-    const handleEdit = async (data) => {
-        await supabase.from('quotes').update({ ...data }).eq('id', quoteToEdit.id);
-        setQuoteToEdit(null);
-        fetchQuotes();
-    };
+  const handleEdit = async (data) => {
+    await supabase.from("quotes").update({ ...data }).eq("id", quoteToEdit.id);
+    setQuoteToEdit(null);
+    fetchQuotes();
+  };
 
-    return (
-        <div className="container mx-auto p-8">
-            {/* Add Modal */}
-            <QuoteModal
-                isOpen={showAddForm}
-                onClose={() => setShowAddForm(false)}
-                onSubmit={handleAdd}
-            />
+  const deleteQuote = async (id) => {
+    const confirmDelete = window.confirm("Are you sure you want to delete this estimate?");
+    if (!confirmDelete) return;
+    await supabase.from("quotes").delete().eq("id", id);
+    // Refresh
+    const { data, error } = await supabase.from("quotes").select("*").order(sortField, { ascending: sortOrder === "asc" });
+    if (!error) setQuotes(data);
+  };
 
-            {/* Edit Modal */}
-            <QuoteModal
-                isOpen={!!quoteToEdit}
-                onClose={() => setQuoteToEdit(null)}
-                onSubmit={handleEdit}
-                initialData={quoteToEdit}
-                isEditing
-            />
+  const togglePaidStatus = async (id, currentStatus) => {
+    const newStatus = currentStatus === "Paid" ? "Pending" : "Paid";
+    await supabase.from("quotes").update({ status: newStatus }).eq("id", id);
+    const { data, error } = await supabase.from("quotes").select("*").order(sortField, { ascending: sortOrder === "asc" });
+    if (!error) setQuotes(data);
+  };
 
-            <div className="flex justify-between items-center mb-6">
-                <h1 className="text-4xl font-bold">All Quotes</h1>
-                <button
-                    onClick={() => setShowAddForm(true)}
-                    className="bg-[#4B3621] text-white px-4 py-2 rounded"
-                >
-                    + Add New Quote
-                </button>
-            </div>
+  const filteredQuotes = quotes.filter((q) =>
+    q.full_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    q.estimate_number?.includes(searchTerm)
+  );
 
-            <table className="w-full text-left border">
-                <thead className="bg-gray-200">
-                    <tr>
-                        <th className="p-4">Date</th>
-                        <th className="p-4">Name</th>
-                        <th className="p-4">Email</th>
-                        <th className="p-4">Total</th>
-                        <th className="p-4">Status</th>
-                        <th className="p-4">Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {quotes.map((quote) => (
-                        <tr key={quote.id} className="border-t">
-                            <td className="p-4">{new Date(quote.created_at).toLocaleDateString()}</td>
-                            <td className="p-4">{quote.full_name}</td>
-                            <td className="p-4">{quote.email}</td>
-                            <td className="p-4">${quote.total.toFixed(2)}</td>
-                            <td className="p-4">{quote.status}</td>
-                            <td className="p-4 flex gap-2 flex-wrap">
-                                <button
-                                    onClick={() => markAsPaid(quote.id)}
-                                    className="bg-green-600 text-white px-3 py-1 rounded"
-                                >
-                                    Mark Paid
-                                </button>
-                                <button
-                                    onClick={() => setQuoteToEdit(quote)}
-                                    className="bg-blue-600 text-white px-3 py-1 rounded"
-                                >
-                                    Edit
-                                </button>
-                                <button
-                                    onClick={() => deleteQuote(quote.id)}
-                                    className="bg-red-600 text-white px-3 py-1 rounded"
-                                >
-                                    Delete
-                                </button>
-                            </td>
-                        </tr>
-                    ))}
-                </tbody>
-            </table>
+  return (
+    <div className="container mx-auto px-6 py-10 pt-24 max-w-screen-xl" >
+      <QuoteModal isOpen={showAddForm} onClose={() => setShowAddForm(false)} onSubmit={handleAdd} />
+      <QuoteModal
+        isOpen={!!quoteToEdit}
+        onClose={() => setQuoteToEdit(null)}
+        onSubmit={handleEdit}
+        initialData={quoteToEdit}
+        isEditing
+      />
+      <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4 mb-8">
+        <h1 className="text-4xl font-bold text-[#4B3621]">All Estimates</h1>
+        <div className="flex flex-wrap gap-3">
+          <button
+            onClick={() => setShowAddForm(true)}
+            className="bg-[#4B3621] text-white px-4 py-2 rounded-md hover:bg-[#3a2b1a] transition"
+          >
+            + New Estimate
+          </button>
         </div>
-    );
+      </div>
+
+      <div className="mb-6 flex flex-wrap gap-4 items-center justify-between">
+        <input
+          type="text"
+          placeholder="Search by name or estimate #..."
+          className="border border-gray-300 p-3 rounded-md w-full max-w-md"
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+        />
+      </div>
+
+      <div className="overflow-x-auto bg-white shadow rounded-lg">
+        <table className="min-w-full table-auto">
+          <thead className="bg-[#f4f4f4] text-left text-sm font-semibold text-gray-600">
+            <tr>
+              <th className="p-4">Estimate #</th>
+              <th className="p-4">Date</th>
+              <th className="p-4">Customer</th>
+              <th className="p-4">Email</th>
+              <th className="p-4">Total</th>
+              <th className="p-4">
+                <div className="flex flex-col">
+                  <span>Status</span>
+                  <select
+                    className="mt-1 text-sm border-gray-300 rounded-md"
+                    value={statusFilter}
+                    onChange={(e) => setStatusFilter(e.target.value)}
+                  >
+                    <option value="">All</option>
+                    <option value="Pending">Pending</option>
+                    <option value="Paid">Paid</option>
+                  </select>
+                </div>
+              </th>
+              <th className="p-4 text-right">
+                <div className="flex flex-col items-end">
+                  <span>Sort</span>
+                  <select
+                    className="mt-1 text-sm border-gray-300 rounded-md"
+                    value={sortField}
+                    onChange={(e) => setSortField(e.target.value)}
+                  >
+                    <option value="created_at">Date</option>
+                    <option value="estimate_number">Estimate #</option>
+                    <option value="total">Total</option>
+                    <option value="status">Status</option>
+                  </select>
+                  <select
+                    className="mt-1 text-sm border-gray-300 rounded-md"
+                    value={sortOrder}
+                    onChange={(e) => setSortOrder(e.target.value)}
+                  >
+                    <option value="desc">Descending</option>
+                    <option value="asc">Ascending</option>
+                  </select>
+                </div>
+              </th>
+            </tr>
+          </thead>
+          <tbody className="text-sm divide-y divide-gray-200">
+            {filteredQuotes.map((quote) => (
+              <tr key={quote.id}>
+                <td className="p-4 font-mono">{quote.estimate_number}</td>
+                <td className="p-4">{new Date(quote.created_at).toLocaleDateString()}</td>
+                <td className="p-4">{quote.full_name}</td>
+                <td className="p-4">{quote.email}</td>
+                <td className="p-4">${quote.total?.toFixed(2)}</td>
+                <td className="p-4">
+                  <span className={`px-2 py-1 rounded-full text-xs font-medium ${quote.status === 'Paid' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}`}>
+                    {quote.status}
+                  </span>
+                </td>
+                <td className="p-4 flex justify-end gap-2 flex-wrap">
+                  <button
+                    onClick={() => togglePaidStatus(quote.id, quote.status)}
+                    className="text-xs bg-gray-200 hover:bg-gray-300 px-3 py-1 rounded"
+                  >
+                    {quote.status === "Paid" ? "Mark Unpaid" : "Mark Paid"}
+                  </button>
+                  <Link
+                    to={`/admin/quotes/${quote.id}`}
+                    className="text-xs bg-[#4B3621] text-white hover:bg-[#3a2b1a] px-3 py-1 rounded"
+                  >
+                    View
+                  </Link>
+                  <Link
+                    to={`/admin/quotes/edit/${quote.id}`}
+                    className="text-xs bg-blue-600 text-white hover:bg-blue-700 px-3 py-1 rounded"
+                  >
+                    Edit
+                  </Link>
+                  <button
+                    onClick={() => deleteQuote(quote.id)}
+                    className="text-xs bg-red-600 text-white hover:bg-red-700 px-3 py-1 rounded"
+                  >
+                    Delete
+                  </button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+
+        </table>
+      </div>
+    </div>
+  );
 }
