@@ -10,14 +10,11 @@ export default function Navbar() {
         {/* Logo + Brand */}
         <Link to="/" className="flex items-center space-x-3">
           <img
-            src="/images/logo2.png"
+            src="/images/steve_logo.png"
             alt="Steve's Logo"
             className="h-12 w-auto"
           />
-          <div className="leading-tight">
-            <h1 className="text-xl font-bold text-gray-800">STEVE’S</h1>
-            <h2 className="text-sm font-semibold text-gray-600">Staining & Restoration</h2>
-          </div>
+
         </Link>
 
         {/* Mobile Menu Button */}
@@ -34,10 +31,9 @@ export default function Navbar() {
           <Link to="/about" className="hover:text-[#4B3621] transition">About</Link>
           <Link to="/services" className="hover:text-[#4B3621] transition">Services</Link>
           <Link to="/contact" className="hover:text-[#4B3621] transition">Contact</Link>
-          <Link to="/admin/dashboard" className="hover:text-[#4B3621]">Admin</Link>
           <Link
             to="/quote"
-            className="bg-[#4B3621] text-white px-4 py-2 rounded-lg hover:bg-[#3a2b1a] transition text-sm font-semibold"
+            className="bg-[#4B3621] text-white px-4 py-2 rounded-full hover:bg-[#3a2b1a] transition text-sm font-semibold"
           >
             Get an Estimate
           </Link>
@@ -51,13 +47,11 @@ export default function Navbar() {
           <Link to="/about" className="block hover:text-[#4B3621]" onClick={() => setMenuOpen(false)}>About</Link>
           <Link to="/services" className="block hover:text-[#4B3621]" onClick={() => setMenuOpen(false)}>Services</Link>
           <Link to="/contact" className="block hover:text-[#4B3621]" onClick={() => setMenuOpen(false)}>Contact</Link>
-          <Link to="/admin/quotes" className="block text-sm text-gray-500 hover:underline" onClick={() => setMenuOpen(false)}>Admin Login</Link>
           <Link
             to="/quote"
-            className="inline-block bg-[#4B3621] text-white px-4 py-2 rounded-lg hover:bg-[#3a2b1a] transition text-sm font-semibold"
-            onClick={() => setMenuOpen(false)}
+            className="bg-[#4B3621] text-white px-4 py-2 rounded-lg hover:bg-[#3a2b1a] transition text-sm font-semibold"
           >
-            Get a Quote
+            Get an Estimate
           </Link>
         </div>
       )}

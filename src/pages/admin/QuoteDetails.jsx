@@ -3,6 +3,9 @@ import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "../../lib/supabase";
 
+const API_BASE_URL = "http://localhost:5000"; // ✅ Correct backend URL
+
+
 export default function QuoteDetails() {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -18,6 +21,31 @@ export default function QuoteDetails() {
     }
     fetchQuote();
   }, [id]);
+
+  const sendEmail = async () => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/send-quote-email`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          to: quote.email,
+          subject: `Estimate #${quote.estimate_number} from Steve's Staining`,
+          text: `Hi ${quote.full_name},\n\nPlease find attached your estimate.\n\nThanks,\nSteve's Staining Team`,
+          estimateNumber: quote.estimate_number,
+        }),
+      });
+
+      const result = await response.json();
+      if (result.success) {
+        alert("Estimate emailed successfully!");
+      } else {
+        alert("Failed to send email.");
+      }
+    } catch (err) {
+      console.error("Email send error:", err);
+      alert("There was an error sending the email.");
+    }
+  };
 
   if (loading) return <div className="p-8">Loading...</div>;
   if (!quote) return <div className="p-8 text-red-500">Quote not found.</div>;
@@ -97,6 +125,18 @@ export default function QuoteDetails() {
           <p><strong>Fence Preparation:</strong> ${fence_preparation?.toFixed(2)}</p>
         </div>
       )}
+      {quote.project_type === 'Other' ? (
+        <div className="mb-4">
+          <h2 className="text-xl font-semibold mb-2 text-[#4B3621]">Custom Project Description</h2>
+          <p className="bg-gray-100 p-4 rounded">{quote.custom_description || 'N/A'}</p>
+        </div>
+      ) : (
+        <>
+          <p>Subtotal: ${quote.subtotal?.toFixed(2)}</p>
+          <p>Tax: ${quote.tax?.toFixed(2)}</p>
+          <p>Total: ${quote.total?.toFixed(2)}</p>
+        </>
+      )}
 
       {services.length > 0 && (
         <div className="bg-white rounded-xl shadow p-6 mb-8">
@@ -119,6 +159,15 @@ export default function QuoteDetails() {
           </div>
         </div>
       )}
+
+      <div className="text-right">
+        <button
+          onClick={sendEmail}
+          className="bg-green-600 text-white px-6 py-3 rounded-md hover:bg-green-700 transition"
+        >
+          Send Estimate via Email
+        </button>
+      </div>
     </div>
   );
 }

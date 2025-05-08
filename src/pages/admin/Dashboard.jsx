@@ -13,7 +13,7 @@ export default function Dashboard() {
           to="/admin/quotes"
           className="block bg-white border rounded-xl p-6 shadow hover:shadow-md hover:bg-gray-50 transition"
         >
-          <h2 className="text-2xl font-semibold mb-2">Manage Quotes</h2>
+          <h2 className="text-2xl font-semibold mb-2">Manage Estimates</h2>
           <p>View, edit, mark paid, and delete customer quotes.</p>
         </Link>
 

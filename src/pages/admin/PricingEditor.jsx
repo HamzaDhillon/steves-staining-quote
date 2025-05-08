@@ -55,9 +55,8 @@ export default function PricingEditor() {
       fence_previous_none: "Fence No Coating ($/sq.ft)",
       fence_previous_paint: "Fence Painted ($/sq.ft)",
       fence_previous_stain: "Fence Stained ($/sq.ft)",
-      wash_basic: "Wash – Basic ($/sq.ft)",
-      wash_deep: "Wash – Deep ($/sq.ft)",
-      wash_stripping: "Wash – Stripping ($/sq.ft)"
+      deck_wash: "Deck Wash ($/sq.ft)",
+      fence_wash: "Fence Wash ($/sq.ft)"
     };
     return labels[key] || key.replace(/_/g, " ");
   };
@@ -131,7 +130,8 @@ return (
 
     {activeTab === "Wash" && (
       <>
-        {renderSection("Wash Services", ["wash_basic", "wash_deep", "wash_stripping"], "bg-[#f3f4f6]")}
+        {renderSection("Maintenance Washing", ["deck_wash", "fence_wash"], "bg-[#f3f4f6]")
+        }
       </>
     )}
 

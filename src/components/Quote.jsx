@@ -1,8 +1,4 @@
-
-
-
-
-// Full updated Quote.jsx - with clear-on-submit & success message
+// Updated Quote.jsx with "Other" project type logic and conditional maintenance wash section
 import { useState, useEffect } from 'react';
 import { jsPDF } from "jspdf";
 import { supabase } from '../lib/supabase';
@@ -16,10 +12,18 @@ const schema = yup.object().shape({
   phone: yup.string().matches(/^\(\d{3}\) \d{3} \d{4}$/, 'Phone must be in (123) 456 7890 format').required('Phone is required'),
   address: yup.string().required('Address is required'),
   project_type: yup.string().required('Please select a project type'),
+  custom_description: yup
+    .string()
+    .nullable()
+    .when('project_type', (project_type, schema) => {
+      return project_type === 'Other'
+        ? schema.required('Please describe your project')
+        : schema.notRequired();
+    })
 });
 
 export default function Quote() {
-  const { register, handleSubmit, formState: { errors }, reset } = useForm({ resolver: yupResolver(schema) });
+  const { register, handleSubmit, formState: { errors }, reset } = useForm({ resolver: yupResolver(schema), mode: 'onChange' });
   const [projectType, setProjectType] = useState('');
   const [deckData, setDeckData] = useState({ squareFootage: '', railingFeet: '', steps: '', deckAge: '', previousCoating: '' });
   const [fenceData, setFenceData] = useState({ linearFeet: '', height: '', doubleSided: false, fenceAge: '', fenceCoating: '' });
@@ -55,6 +59,32 @@ export default function Quote() {
   };
 
   const onSubmit = async (data) => {
+    const photoUrls = await uploadPhotos();
+    const { count } = await supabase.from('quotes').select('*', { count: 'exact', head: true });
+    const estimate_number = String(count + 1).padStart(4, '0');
+
+    if (data.project_type === 'Other') {
+      await supabase.from('quotes').insert([{
+        ...data,
+        estimate_number,
+        project_type: 'Other',
+        custom_description: data.custom_description,
+        services,
+        photo_urls: photoUrls,
+        status: 'Pending'
+      }]);
+
+      reset();
+      setProjectType('');
+      data.project_type = '';
+      setDeckData({ squareFootage: '', railingFeet: '', steps: '', deckAge: '', previousCoating: '' });
+      setFenceData({ linearFeet: '', height: '', doubleSided: false, fenceAge: '', fenceCoating: '' });
+      setServices([]);
+      setPhotos([]);
+      setSubmissionSuccess(true);
+      return;
+    }
+
     let deckStaining = 0, deckPrep = 0, fenceStaining = 0, fencePrep = 0, wash = 0;
     const sf = parseFloat(deckData.squareFootage) || 0;
     const rf = parseFloat(deckData.railingFeet) || 0;
@@ -76,27 +106,100 @@ export default function Quote() {
     }
 
     services.forEach(s => {
-      if (s === 'Basic Wash') wash += sf * (pricing.wash_basic || 0);
-      if (s === 'Deep Wash') wash += sf * (pricing.wash_deep || 0);
-      if (s === 'Stripping') wash += sf * (pricing.wash_stripping || 0);
+      if (s === 'Deck Wash') wash += sf * (pricing.deck_wash || 0);
+      if (s === 'Fence Wash') {
+        const lf = parseFloat(fenceData.linearFeet) || 0;
+        const h = parseFloat(fenceData.height) || 0;
+        wash += lf * h * (pricing.fence_wash || 0);
+      }
     });
 
     const subtotal = deckStaining + deckPrep + fenceStaining + fencePrep + wash;
     const tax = subtotal * 0.15;
     const total = subtotal + tax;
-    const photoUrls = await uploadPhotos();
 
     const doc = new jsPDF();
-    doc.setFontSize(22).text('Instant Estimates', 105, 20, { align: 'center' });
-    doc.save('Instant_Estimate.pdf');
+const pageWidth = doc.internal.pageSize.getWidth();
 
-    const { count } = await supabase.from('quotes').select('*', { count: 'exact', head: true });
-    const estimate_number = String(count + 1).padStart(4, '0');
+// Load logo image
+const logo = new Image();
+logo.src = '/images/steve_logo.png'; // make sure this is inside /public/images/
+
+logo.onload = () => {
+  // Header with logo and title
+  doc.addImage(logo, 'PNG', 15, 10, 55, 20);
+  doc.setFontSize(18);
+  doc.setFont('helvetica', 'bold');
+  // doc.text("Steve's Staining Services", 60, 20);
+  doc.setFontSize(12);
+  doc.setFont('helvetica', 'normal');
+  // doc.text('Instant Estimate', 60, 27);
+  doc.line(14, 35, pageWidth - 14, 35);
+
+  // Customer Info
+  let y = 45;
+  doc.setFontSize(11);
+  doc.setFont('helvetica', 'bold');
+  doc.text('Customer Details', 14, y);
+  y += 6;
+  doc.setFont('helvetica', 'normal');
+  doc.text(`Name: ${data.full_name}`, 14, y);
+  y += 6;
+  doc.text(`Email: ${data.email}`, 14, y);
+  y += 6;
+  doc.text(`Phone: ${data.phone}`, 14, y);
+  y += 6;
+  doc.text(`Address: ${data.address}`, 14, y);
+  y += 6;
+  doc.text(`Project Type: ${projectType}`, 14, y);
+  y += 6;
+  if (data.custom_description) {
+    doc.text(`Description: ${data.custom_description}`, 14, y);
+    y += 6;
+  }
+
+  // Pricing Details
+  y += 10;
+  doc.setFont('helvetica', 'bold');
+  doc.text('Estimate Breakdown', 14, y);
+  doc.setFont('helvetica', 'normal');
+  y += 6;
+  if (deckStaining > 0) doc.text(`Deck Staining: $${deckStaining.toFixed(2)}`, 14, y += 6);
+  if (deckPrep > 0) doc.text(`Deck Preparation: $${deckPrep.toFixed(2)}`, 14, y += 6);
+  if (fenceStaining > 0) doc.text(`Fence Staining: $${fenceStaining.toFixed(2)}`, 14, y += 6);
+  if (fencePrep > 0) doc.text(`Fence Preparation: $${fencePrep.toFixed(2)}`, 14, y += 6);
+  if (wash > 0) doc.text(`Washing Services: $${wash.toFixed(2)}`, 14, y += 6);
+
+  // Summary Box
+  y += 10;
+  doc.setDrawColor(75, 54, 33); // dark brown
+  doc.setFillColor(245, 245, 245); // light gray
+  doc.rect(14, y, pageWidth - 28, 30, 'FD'); // filled rect
+
+  doc.setFont('helvetica', 'bold');
+  doc.text(`Subtotal: $${subtotal.toFixed(2)}`, 18, y + 10);
+  doc.text(`Tax (15%): $${tax.toFixed(2)}`, 18, y + 18);
+  doc.setFontSize(13);
+  doc.text(`Total: $${total.toFixed(2)}`, 18, y + 26);
+
+  // Footer
+  doc.setFontSize(10);
+  doc.setFont('helvetica', 'normal');
+  doc.setTextColor(100);
+  doc.text("This estimate is subject to site inspection and may change based on actual measurements and conditions.", 14, 270);
+  doc.text("instantestimates.ca | contact@instantestimates.ca | +1 (902) 314-0505", 14, 278);
+
+  // Save the PDF
+  doc.save(`Estimate_${estimate_number}.pdf`);
+};
+
+    
 
     await supabase.from('quotes').insert([{
       ...data,
       estimate_number,
       project_type: projectType,
+      custom_description: null,
       deck_data: deckData,
       fence_data: fenceData,
       services,
@@ -121,13 +224,13 @@ export default function Quote() {
   };
 
   return (
-    <div className="container mx-auto px-6 py-20">
+    <div className="container mx-auto px-6 pt-24 py-20">
       <h1 className="text-4xl font-bold text-center mb-12 text-[#4B3621]">Get Your Instant Estimate</h1>
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 bg-white p-8 rounded-xl shadow-lg">
         {/* Personal Info */}
         <div><input placeholder="Full Name" {...register('full_name')} className="w-full border p-3 rounded" />{errors.full_name && <p className="text-red-500 text-sm">{errors.full_name.message}</p>}</div>
         <div><input type="email" placeholder="Email" {...register('email')} className="w-full border p-3 rounded" />{errors.email && <p className="text-red-500 text-sm">{errors.email.message}</p>}</div>
-        <div><input type="tel" placeholder="Phone (514) 951 2681" maxLength={14} {...register('phone')} onChange={(e) => {
+        <div><input type="tel" placeholder="Phone (123) 456 7890" maxLength={14} {...register('phone')} onChange={(e) => {
           const cleaned = e.target.value.replace(/\D/g, '').slice(0, 10);
           e.target.value = cleaned.length > 6 ? `(${cleaned.slice(0, 3)}) ${cleaned.slice(3, 6)} ${cleaned.slice(6)}` : cleaned.length > 3 ? `(${cleaned.slice(0, 3)}) ${cleaned.slice(3)}` : cleaned.length > 0 ? `(${cleaned}` : '';
         }} className="w-full border p-3 rounded" />{errors.phone && <p className="text-red-500 text-sm">{errors.phone.message}</p>}</div>
@@ -139,7 +242,18 @@ export default function Quote() {
           <option value="Deck">Deck</option>
           <option value="Fence">Fence</option>
           <option value="Both">Both</option>
-        </select>{errors.project_type && <p className="text-red-500 text-sm">{errors.project_type.message}</p>}</div>
+          <option value="Other">Other</option>
+        </select></div>
+        {projectType === 'Other' && (
+          <div>
+            <input
+              type="text"
+              placeholder="Please describe your project"
+              className="w-full border p-3 rounded"
+              {...register('custom_description')}
+            />
+          </div>
+        )}
 
         {/* Deck Fields */}
         {(projectType === 'Deck' || projectType === 'Both') && (
@@ -199,19 +313,26 @@ export default function Quote() {
           </div>
         )}
 
-        {/* Additional Services */}
-        <div className="space-y-2">
-          <p className="font-semibold">Additional Services</p>
-          {['Basic Wash', 'Deep Wash', 'Stripping'].map(service => (
-            <label key={service} className="flex items-center space-x-2">
-              <input type="checkbox" value={service} checked={services.includes(service)} onChange={e => {
-                const { value, checked } = e.target;
-                setServices(prev => checked ? [...prev, value] : prev.filter(s => s !== value));
-              }} />
-              <span>{service}</span>
-            </label>
-          ))}
-        </div>
+        {/* Maintenance Washing Services */}
+        {projectType !== 'Other' && (
+          <div className="space-y-2">
+            <p className="font-semibold">Maintenance Washing</p>
+            {['Deck Wash', 'Fence Wash'].map(service => (
+              <label key={service} className="flex items-center space-x-2">
+                <input
+                  type="checkbox"
+                  value={service}
+                  checked={services.includes(service)}
+                  onChange={e => {
+                    const { value, checked } = e.target;
+                    setServices(prev => checked ? [...prev, value] : prev.filter(s => s !== value));
+                  }}
+                />
+                <span>{service}</span>
+              </label>
+            ))}
+          </div>
+        )}
 
         {/* Photo Upload */}
         <div>
@@ -219,7 +340,7 @@ export default function Quote() {
           <input type="file" accept="image/*" multiple onChange={e => setPhotos(Array.from(e.target.files))} />
         </div>
 
-        <button type="submit" className="w-full bg-[#4B3621] text-white p-3 rounded font-semibold">Get Estimate</button>
+        <button type="submit" className="w-full bg-[#4B3621] text-white p-3 rounded-full font-semibold">Get Estimate</button>
       </form>
 
       {submissionSuccess && (
@@ -230,3 +351,15 @@ export default function Quote() {
     </div>
   );
 }
+
+
+
+
+
+
+
+
+
+
+
+

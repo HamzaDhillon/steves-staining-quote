@@ -108,6 +108,24 @@ export default function QuoteEdit() {
           </div>
         </div>
       )}
+      {form.project_type === 'Other' ? (
+        <div className="mb-4">
+          <label className="block text-sm font-medium mb-1">Custom Project Description</label>
+          <textarea
+            name="custom_description"
+            value={form.custom_description}
+            onChange={handleChange}
+            className="w-full border p-3 rounded"
+            rows={4}
+          />
+        </div>
+      ) : (
+        <>
+          {/* Deck/Fence input sections like square footage, steps, etc. */}
+          {/* Total, tax, etc. */}
+        </>
+      )}
+
 
       {form.photo_urls?.length > 0 && (
         <div className="bg-white rounded-xl shadow p-6 mb-8">

@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom';
 import { useEffect } from 'react';
 import AOS from 'aos';
 import 'aos/dist/aos.css';
+import { Paintbrush, ShieldCheck, Leaf } from 'lucide-react';
 
 export default function Home() {
   useEffect(() => {
@@ -34,24 +35,48 @@ export default function Home() {
 
       <div className="pt-16 text-gray-800 scroll-smooth">
         {/* Hero Section */}
+
+
+        {/* Hero Section */}
         <section
-          className="min-h-screen bg-cover bg-center flex flex-col justify-center items-center text-center relative"
-          style={{ backgroundImage: "url('/images/wood.png')" }}
+          className="relative min-h-screen flex items-center justify-center bg-cover bg-center text-white px-6"
+          style={{ backgroundImage: "url('/images/wood.png')" }} // replace with your background image
         >
-          <div className="absolute inset-0 bg-black bg-opacity-50"></div>
-          <div className="relative z-10 max-w-2xl mx-auto px-6 py-12 bg-white/80 rounded-2xl shadow-xl" data-aos="zoom-in">
-            <h1 className="text-4xl md:text-6xl font-extrabold mb-4 text-[#4B3621]">
-              Bring Your Deck Back to Life
+          {/* Overlay */}
+          <div className="absolute inset-0 bg-black bg-opacity-60"></div>
+
+          {/* Content */}
+          <div className="relative z-10 max-w-4xl text-center" data-aos="zoom-in">
+            <h1 className="text-4xl md:text-6xl font-extrabold mb-6 leading-tight">
+              Expert Wood Staining for a Lasting First Impression
             </h1>
-            <p className="text-lg md:text-xl mb-8 text-gray-700">
-              Professional wood staining & restoration services that protect and beautify.
+            <p className="text-lg md:text-xl mb-8 text-gray-200">
+              Transform your outdoor wood with expert staining backed by a 2-year warranty.
             </p>
             <Link
               to="/quote"
-              className="inline-block bg-[#4B3621] hover:bg-[#3a2b1a] text-white py-3 px-8 rounded-full text-lg animate-bounce transition"
+              className="inline-block bg-white text-[#4B3621] font-semibold py-3 px-8 rounded-full text-lg shadow-lg hover:bg-gray-100 transition"
             >
               Get an Estimate
             </Link>
+
+            {/* Features */}
+            <div className="mt-12 grid grid-cols-1 sm:grid-cols-3 gap-6 text-white max-w-3xl mx-auto">
+              {[
+                { icon: <Paintbrush size={36} />, label: 'Professional Finish' },
+                { icon: <ShieldCheck size={36} />, label: '2-Year Warranty' },
+                { icon: <Leaf size={36} />, label: 'Eco-Friendly Stains' },
+              ].map(({ icon, label }) => (
+                <div
+                  key={label}
+                  className="flex flex-col items-center"
+                  data-aos="fade-up"
+                >
+                  <div className="mb-2">{icon}</div>
+                  <p className="text-md">{label}</p>
+                </div>
+              ))}
+            </div>
           </div>
         </section>
 
@@ -63,20 +88,21 @@ export default function Home() {
             </h2>
             <div className="grid md:grid-cols-3 gap-8">
               {[
-                { title: 'Decks', icon: '/images/icon-deck.svg' },
-                { title: 'Fences', icon: '/images/icon-fence.svg' },
-                { title: 'Furniture & More', icon: '/images/icon-furniture.svg' },
+                { title: 'Decks', icon: '/images/deck.jpg' },
+                { title: 'Fences', icon: '/images/fence.jpg' },
+                { title: 'Furniture & More', icon: '/images/furniture.jpg' },
               ].map(({ title, icon }) => (
                 <div
                   key={title}
                   className="bg-white p-8 rounded-2xl shadow-lg hover:shadow-2xl transition"
                   data-aos="fade-up"
                 >
-                  <img src={icon} alt={title} className="mx-auto h-16 w-16 mb-4" />
+                  <img
+                    src={icon}
+                    alt={title}
+                    className="mx-auto h-40 w-full object-cover rounded-xl mb-4"
+                  />
                   <h3 className="text-xl font-semibold mb-2 text-[#4B3621]">{title}</h3>
-                  <p className="text-gray-700">
-                    High-quality staining and restoration for {title.toLowerCase()}.
-                  </p>
                 </div>
               ))}
             </div>
@@ -87,7 +113,7 @@ export default function Home() {
         <section id="process" className="py-20 bg-white">
           <div className="max-w-7xl mx-auto px-6 lg:px-8 text-center">
             <h2 className="text-3xl md:text-4xl font-bold mb-12 text-[#4B3621]" data-aos="fade-up">
-              Our 3-Step Process
+              Our 3-Step Wood Restoration Process
             </h2>
             <div className="grid md:grid-cols-3 gap-8">
               {[

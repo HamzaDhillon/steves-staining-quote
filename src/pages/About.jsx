@@ -10,81 +10,100 @@ export default function About() {
   }, []);
 
   return (
-    <div className="text-gray-800">
-
-      {/* Hero Section */}
-      <section className="h-80 bg-cover bg-center flex items-center justify-center relative" style={{ backgroundImage: "url('/images/hero-bg.jpg')" }}>
-        <div className="absolute inset-0 bg-black bg-opacity-40"></div>
+    <div className="text-gray-800 pt-16">
+      {/* Header with Background Image */}
+      <section
+        className="h-64 bg-cover bg-center flex items-center justify-center relative"
+        style={{ backgroundImage: "url('/images/sea-side.jpg')" }}
+      >
+        <div className="absolute inset-0 bg-black bg-opacity-50"></div>
         <div className="relative z-10 text-center">
           <h1 className="text-5xl font-bold text-white">About Us</h1>
-          <p className="text-xl text-gray-200 mt-4">Passionate Craftsmanship. Lasting Beauty.</p>
+          <p className="mt-4 text-lg text-gray-200">Experts in wood restoration across PEI</p>
         </div>
       </section>
 
-      {/* Content Section */}
+      {/* Who We Are */}
       <section className="py-20 bg-white">
-        <div className="container mx-auto px-6 max-w-screen-xl space-y-24">
-
-          {/* Who We Are */}
-          <div className="flex flex-col md:flex-row items-center gap-12">
-            <div className="md:w-1/2" data-aos="fade-right">
-              <h2 className="text-4xl font-bold mb-6 text-[#4B3621]">Who We Are</h2>
-              <p className="text-gray-700 mb-4">
-                Steve’s Staining & Restoration is built on a simple mission: to make your outdoor spaces feel as beautiful as your indoor ones.
-                Our team specializes in restoring tired decks, fences, pergolas, and outdoor wood structures into stunning, vibrant features you’ll love.
-              </p>
-              <p className="text-gray-700">
-                With years of hands-on experience, a passion for craftsmanship, and a commitment to excellence, we deliver results that last — guaranteed.
-              </p>
-            </div>
-            <div className="md:w-1/2" data-aos="fade-left">
-              <img src="/images/deck1.jpg" alt="Deck Restoration" className="rounded-2xl shadow-lg w-full max-w-md mx-auto" />
-            </div>
+        <div className="max-w-6xl mx-auto px-6 grid md:grid-cols-2 gap-12 items-center">
+          <div data-aos="fade-right">
+            <h2 className="text-3xl font-bold mb-4 text-[#4B3621]">Who We Are</h2>
+            <p className="text-gray-700 mb-4">
+              At Steve’s Staining & Restoration, our mission is to make your outdoor wood look its absolute best — and stay that way.
+            </p>
+            <p className="text-gray-700">
+              We specialize in staining and restoring decks, fences, and wood structures with care, passion, and a satisfaction-first mindset.
+            </p>
           </div>
-
-          {/* Our Process */}
-          <div className="flex flex-col md:flex-row-reverse items-center gap-12">
-            <div className="md:w-1/2" data-aos="fade-left">
-              <h2 className="text-4xl font-bold mb-6 text-[#4B3621]">Our 3-Step Process</h2>
-              <ul className="text-gray-700 list-disc list-inside space-y-2">
-                <li><span className="font-semibold text-[#4B3621]">Strip Coatings:</span> Removing old stains and sealers to reveal the natural wood grain.</li>
-                <li><span className="font-semibold text-[#4B3621]">Wash & Brighten:</span> Cleaning and restoring the wood’s natural vibrancy.</li>
-                <li><span className="font-semibold text-[#4B3621]">Sand & Stain:</span> Final prep and application of premium oil-based stains for lasting beauty and protection.</li>
+          <div data-aos="fade-left">
+            <div className="bg-gray-50 p-6 rounded-2xl shadow-md space-y-2">
+              <div className="text-lg font-medium text-[#4B3621]">Why Choose Us?</div>
+              <ul className="list-disc list-inside text-gray-700 space-y-1">
+                <li>Decades of combined experience</li>
+                <li>Eco-conscious, long-lasting stains</li>
+                <li>Local PEI expertise and commitment</li>
               </ul>
             </div>
-            <div className="md:w-1/2" data-aos="fade-right">
-              <img src="/images/deck2.jpg" alt="Process Example" className="rounded-2xl shadow-lg w-full max-w-md mx-auto" />
-            </div>
           </div>
-
-          {/* Our Guarantee */}
-          <div className="flex flex-col md:flex-row items-center gap-12">
-            <div className="md:w-1/2" data-aos="fade-right">
-              <h2 className="text-4xl font-bold mb-6 text-[#4B3621]">Our Guarantee</h2>
-              <p className="text-gray-700 mb-4">
-                We proudly back every project with a <span className="font-semibold text-[#4B3621]">2-year warranty</span> against fading, flaking, and peeling.
-              </p>
-              <p className="text-gray-700">
-                We use only premium-grade materials and time-tested methods to ensure your investment stays beautiful year after year.
-                Customer trust and satisfaction are the foundations of our company.
-              </p>
-            </div>
-            <div className="md:w-1/2" data-aos="fade-left">
-              <img src="/images/hero-bg.jpg" alt="Quality Guarantee" className="rounded-2xl shadow-lg w-full max-w-md mx-auto" />
-            </div>
-          </div>
-
         </div>
       </section>
 
-      {/* Call to Action */}
-      <section className="py-20 bg-gray-100 text-center">
-        <div className="container mx-auto px-6 max-w-screen-xl">
-          <h2 className="text-3xl md:text-4xl font-bold mb-6 text-[#4B3621]">Ready to Transform Your Deck or Fence?</h2>
-          <p className="text-gray-700 mb-8">Contact us today for a free estimate and let’s bring your outdoor spaces back to life.</p>
-                <Link to="/quote" className="bg-[#4B3621] hover:bg-[#3a2b1a] text-white py-3 px-8 rounded-full text-lg transition">
-                       Get an Estimate
-                     </Link>
+      {/* Our Process */}
+      <section className="py-20 bg-[#fafafa] border-y">
+        <div className="max-w-6xl mx-auto px-6 grid md:grid-cols-2 gap-12 items-center">
+          <div data-aos="fade-right">
+            <img
+              src="/images/deck2.jpg"
+              alt="Deck Process"
+              className="rounded-2xl shadow-lg w-full max-w-sm mx-auto"
+            />
+          </div>
+          <div data-aos="fade-left">
+            <h2 className="text-3xl font-bold mb-4 text-[#4B3621]">How We Work</h2>
+            <p className="text-gray-700 mb-4">
+              Our process is simple, effective, and time-tested. We bring wood back to life in 3 expert stages:
+            </p>
+            <div className="space-y-3">
+              <div><span className="font-semibold text-[#4B3621]">1. Strip:</span> We remove old finishes to expose raw grain.</div>
+              <div><span className="font-semibold text-[#4B3621]">2. Wash:</span> A deep clean followed by a brightener to restore vibrancy.</div>
+              <div><span className="font-semibold text-[#4B3621]">3. Stain:</span> Premium oil-based stain for deep, lasting beauty.</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Our Guarantee */}
+      <section className="py-20 bg-white">
+        <div className="max-w-6xl mx-auto px-6 grid md:grid-cols-2 gap-12 items-center">
+          <div data-aos="fade-right">
+            <h2 className="text-3xl font-bold mb-4 text-[#4B3621]">Our Guarantee</h2>
+            <p className="text-gray-700 mb-4">
+              We stand by our work with a <span className="font-semibold text-[#4B3621]">2-year warranty</span> — covering flaking, fading, and peeling.
+            </p>
+            <p className="text-gray-700">
+              You’ll always get honest advice, great service, and professional-grade results.
+            </p>
+          </div>
+          <div data-aos="fade-left">
+            <img
+              src="/images/hero-bg.jpg"
+              alt="Guarantee"
+              className="rounded-2xl shadow-lg w-full max-w-sm mx-auto"
+            />
+          </div>
+        </div>
+      </section>
+
+      {/* CTA */}
+      <section className="py-20 bg-[#f3f4f6] text-center">
+        <div className="max-w-4xl mx-auto px-6">
+          <h2 className="text-3xl md:text-4xl font-bold mb-4 text-[#4B3621]">Let’s Transform Your Outdoor Space</h2>
+          <p className="text-gray-700 mb-6">
+            Book a free estimate and see how our team can restore beauty to your wood.
+          </p>
+          <Link to="/quote" className="bg-[#4B3621] hover:bg-[#3a2b1a] text-white py-3 px-8 rounded-full text-lg transition">
+            Get an Estimate
+          </Link>
         </div>
       </section>
     </div>
