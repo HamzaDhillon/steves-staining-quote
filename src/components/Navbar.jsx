@@ -14,7 +14,6 @@ export default function Navbar() {
             alt="Steve's Logo"
             className="h-12 w-auto"
           />
-
         </Link>
 
         {/* Mobile Menu Button */}
@@ -42,17 +41,20 @@ export default function Navbar() {
 
       {/* Mobile Nav */}
       {menuOpen && (
-        <div className="md:hidden bg-white px-6 pb-4 space-y-3 text-gray-800 font-medium shadow-md">
-          <Link to="/" className="block hover:text-[#4B3621]" onClick={() => setMenuOpen(false)}>Home</Link>
-          <Link to="/about" className="block hover:text-[#4B3621]" onClick={() => setMenuOpen(false)}>About</Link>
-          <Link to="/services" className="block hover:text-[#4B3621]" onClick={() => setMenuOpen(false)}>Services</Link>
-          <Link to="/contact" className="block hover:text-[#4B3621]" onClick={() => setMenuOpen(false)}>Contact</Link>
-          <Link
-            to="/quote"
-            className="bg-[#4B3621] text-white px-4 py-2 rounded-lg hover:bg-[#3a2b1a] transition text-sm font-semibold"
-          >
-            Get an Estimate
-          </Link>
+        <div className="md:hidden absolute top-full left-0 w-full bg-white shadow-lg z-40">
+          <div className="flex flex-col px-6 py-4 space-y-4 text-gray-800 font-medium animate-slide-down">
+            <Link to="/" onClick={() => setMenuOpen(false)} className="hover:text-[#4B3621]">Home</Link>
+            <Link to="/about" onClick={() => setMenuOpen(false)} className="hover:text-[#4B3621]">About</Link>
+            <Link to="/services" onClick={() => setMenuOpen(false)} className="hover:text-[#4B3621]">Services</Link>
+            <Link to="/contact" onClick={() => setMenuOpen(false)} className="hover:text-[#4B3621]">Contact</Link>
+            <Link
+              to="/quote"
+              onClick={() => setMenuOpen(false)}
+              className="bg-[#4B3621] text-white px-4 py-2 rounded-full hover:bg-[#3a2b1a] transition text-sm font-semibold text-center"
+            >
+              Get an Estimate
+            </Link>
+          </div>
         </div>
       )}
     </header>

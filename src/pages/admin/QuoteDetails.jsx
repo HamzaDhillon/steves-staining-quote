@@ -138,14 +138,26 @@ export default function QuoteDetails() {
         </>
       )}
 
-      {services.length > 0 && (
+      {/* {services.length > 0 && (
         <div className="bg-white rounded-xl shadow p-6 mb-8">
           <h2 className="text-xl font-semibold mb-4 text-[#4B3621]">Extra Services</h2>
           <ul className="list-disc list-inside">
             {services.map((s, i) => <li key={i}>{s}</li>)}
           </ul>
         </div>
+      )} */}
+
+      {services.filter(s => !s.includes("Wash")).length > 0 && (
+        <div className="bg-white rounded-xl shadow p-6 mb-8">
+          <h2 className="text-xl font-semibold mb-4 text-[#4B3621]">Extra Services</h2>
+          <ul className="list-disc list-inside">
+            {services
+              .filter(s => !s.includes("Wash"))
+              .map((s, i) => <li key={i}>{s}</li>)}
+          </ul>
+        </div>
       )}
+
 
       {photo_urls.length > 0 && (
         <div className="bg-white rounded-xl shadow p-6 mb-8">

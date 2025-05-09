@@ -127,7 +127,7 @@ logo.src = '/images/steve_logo.png'; // make sure this is inside /public/images/
 
 logo.onload = () => {
   // Header with logo and title
-  doc.addImage(logo, 'PNG', 15, 10, 55, 20);
+  doc.addImage(logo, 'PNG', 15, 10, 65, 20);
   doc.setFontSize(18);
   doc.setFont('helvetica', 'bold');
   // doc.text("Steve's Staining Services", 60, 20);
@@ -187,7 +187,7 @@ logo.onload = () => {
   doc.setFont('helvetica', 'normal');
   doc.setTextColor(100);
   doc.text("This estimate is subject to site inspection and may change based on actual measurements and conditions.", 14, 270);
-  doc.text("instantestimates.ca | contact@instantestimates.ca | +1 (902) 314-0505", 14, 278);
+  doc.text("instantestimates.ca | steve@instantestimates.ca | +1 (902) 314-0505", 14, 278);
 
   // Save the PDF
   doc.save(`Estimate_${estimate_number}.pdf`);
@@ -313,7 +313,7 @@ logo.onload = () => {
           </div>
         )}
 
-        {/* Maintenance Washing Services */}
+        {/* Maintenance Washing Services
         {projectType !== 'Other' && (
           <div className="space-y-2">
             <p className="font-semibold">Maintenance Washing</p>
@@ -332,7 +332,7 @@ logo.onload = () => {
               </label>
             ))}
           </div>
-        )}
+        )} */}
 
         {/* Photo Upload */}
         <div>
