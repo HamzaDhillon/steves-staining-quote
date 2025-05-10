@@ -1,15 +1,42 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import AOS from 'aos';
 import 'aos/dist/aos.css';
+import emailjs from '@emailjs/browser'; // ✅ NEW IMPORT
 
 export default function Contact() {
   useEffect(() => {
     AOS.init({ duration: 1000, once: true });
   }, []);
 
+  const [formData, setFormData] = useState({ name: '', email: '', message: '' });
+  const [status, setStatus] = useState('');
+
+  const handleChange = (e) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    setStatus('Sending...');
+
+    emailjs.send(
+      'service_ry2fiit', // ✅ Your EmailJS Service ID
+      'template_m088jzl', // ✅ Your Template ID
+      formData,
+      'NrATRy0B2pKUKBWH2' // 🔒 Replace this with your real public key from EmailJS dashboard
+    )
+    .then(() => {
+      setStatus('Message sent successfully!');
+      setFormData({ name: '', email: '', message: '' });
+    })
+    .catch(() => {
+      setStatus('Failed to send message.');
+    });
+  };
+
   return (
     <div className="text-gray-800 pt-16">
-      {/* Header with Background Image */}
+      {/* Header */}
       <section
         className="h-64 bg-cover bg-center flex items-center justify-center relative"
         style={{ backgroundImage: `url('/images/lawn.jpg')` }}
@@ -24,7 +51,7 @@ export default function Contact() {
       {/* Info & Form Section */}
       <section className="py-20 bg-white">
         <div className="max-w-6xl mx-auto px-6 flex flex-col md:flex-row gap-12 items-start">
-          {/* Contact Details */}
+          {/* Contact Info */}
           <div className="md:w-1/2 space-y-6" data-aos="fade-right">
             <h2 className="text-3xl font-bold text-[#4B3621] mb-4">Get in Touch</h2>
             <p className="text-gray-700">
@@ -53,21 +80,30 @@ export default function Contact() {
           </div>
 
           {/* Contact Form */}
-          <form className="md:w-1/2 space-y-4" data-aos="fade-left">
+          <form onSubmit={handleSubmit} className="md:w-1/2 space-y-4" data-aos="fade-left">
             <input
               type="text"
+              name="name"
               placeholder="Name"
+              value={formData.name}
+              onChange={handleChange}
               className="w-full border border-gray-300 p-3 rounded"
               required
             />
             <input
               type="email"
+              name="email"
               placeholder="Email"
+              value={formData.email}
+              onChange={handleChange}
               className="w-full border border-gray-300 p-3 rounded"
               required
             />
             <textarea
+              name="message"
               placeholder="Your Message"
+              value={formData.message}
+              onChange={handleChange}
               className="w-full border border-gray-300 p-3 rounded h-40"
               required
             ></textarea>
@@ -77,11 +113,12 @@ export default function Contact() {
             >
               Send Message
             </button>
+            {status && <p className="text-sm mt-2 text-center text-gray-600">{status}</p>}
           </form>
         </div>
       </section>
 
-      {/* Embedded Map */}
+      {/* Google Map */}
       <section className="py-20 bg-gray-100">
         <div className="max-w-6xl mx-auto px-6" data-aos="fade-up">
           <iframe

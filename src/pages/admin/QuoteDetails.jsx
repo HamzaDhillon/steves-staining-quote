@@ -2,8 +2,7 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "../../lib/supabase";
-
-const API_BASE_URL = "http://localhost:5000"; // ✅ Correct backend URL
+import emailjs from "emailjs-com";
 
 
 export default function QuoteDetails() {
@@ -23,27 +22,29 @@ export default function QuoteDetails() {
   }, [id]);
 
   const sendEmail = async () => {
+    if (!quote) return;
+  
     try {
-      const response = await fetch(`${API_BASE_URL}/send-quote-email`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          to: quote.email,
-          subject: `Estimate #${quote.estimate_number} from Steve's Staining`,
-          text: `Hi ${quote.full_name},\n\nPlease find attached your estimate.\n\nThanks,\nSteve's Staining Team`,
-          estimateNumber: quote.estimate_number,
-        }),
-      });
-
-      const result = await response.json();
-      if (result.success) {
-        alert("Estimate emailed successfully!");
-      } else {
-        alert("Failed to send email.");
-      }
+      await emailjs.send(
+        "service_ry2fiit",
+        "template_pxqerqs",
+        {
+          to_name: quote.full_name || "Customer",
+          to_email: quote.email,
+          project_type: quote.project_type || "N/A",
+          subtotal: quote.subtotal?.toFixed(2) || "0.00",
+          tax: quote.tax?.toFixed(2) || "0.00",
+          total: quote.total?.toFixed(2) || "0.00",
+          address: quote.address || "N/A",
+          phone: quote.phone || "N/A",
+        },
+        "NrATRy0B2pKUKBWH2"
+      );
+  
+      alert("Estimate emailed successfully!");
     } catch (err) {
-      console.error("Email send error:", err);
-      alert("There was an error sending the email.");
+      console.error("EmailJS send error:", err);
+      alert("Failed to send estimate.");
     }
   };
 
@@ -70,6 +71,7 @@ export default function QuoteDetails() {
     fence_preparation,
     status,
     created_at,
+    custom_description
   } = quote;
 
   return (
@@ -100,7 +102,7 @@ export default function QuoteDetails() {
         </div>
       </div>
 
-      {(project_type === "Deck" || project_type === "Both") && (
+      {project_type === 'Deck' || project_type === 'Both' ? (
         <div className="bg-white rounded-xl shadow p-6 mb-8">
           <h2 className="text-xl font-semibold mb-4 text-[#4B3621]">Deck Details</h2>
           <p><strong>Square Footage:</strong> {deck_data.squareFootage}</p>
@@ -111,9 +113,9 @@ export default function QuoteDetails() {
           <p><strong>Deck Staining:</strong> ${deck_staining?.toFixed(2)}</p>
           <p><strong>Deck Preparation:</strong> ${deck_preparation?.toFixed(2)}</p>
         </div>
-      )}
+      ) : null}
 
-      {(project_type === "Fence" || project_type === "Both") && (
+      {project_type === 'Fence' || project_type === 'Both' ? (
         <div className="bg-white rounded-xl shadow p-6 mb-8">
           <h2 className="text-xl font-semibold mb-4 text-[#4B3621]">Fence Details</h2>
           <p><strong>Linear Feet:</strong> {fence_data.linearFeet}</p>
@@ -124,28 +126,14 @@ export default function QuoteDetails() {
           <p><strong>Fence Staining:</strong> ${fence_staining?.toFixed(2)}</p>
           <p><strong>Fence Preparation:</strong> ${fence_preparation?.toFixed(2)}</p>
         </div>
-      )}
-      {quote.project_type === 'Other' ? (
+      ) : null}
+
+      {project_type === 'Other' && (
         <div className="mb-4">
           <h2 className="text-xl font-semibold mb-2 text-[#4B3621]">Custom Project Description</h2>
-          <p className="bg-gray-100 p-4 rounded">{quote.custom_description || 'N/A'}</p>
+          <p className="bg-gray-100 p-4 rounded">{custom_description || 'N/A'}</p>
         </div>
-      ) : (
-        <>
-          <p>Subtotal: ${quote.subtotal?.toFixed(2)}</p>
-          <p>Tax: ${quote.tax?.toFixed(2)}</p>
-          <p>Total: ${quote.total?.toFixed(2)}</p>
-        </>
       )}
-
-      {/* {services.length > 0 && (
-        <div className="bg-white rounded-xl shadow p-6 mb-8">
-          <h2 className="text-xl font-semibold mb-4 text-[#4B3621]">Extra Services</h2>
-          <ul className="list-disc list-inside">
-            {services.map((s, i) => <li key={i}>{s}</li>)}
-          </ul>
-        </div>
-      )} */}
 
       {services.filter(s => !s.includes("Wash")).length > 0 && (
         <div className="bg-white rounded-xl shadow p-6 mb-8">
@@ -157,7 +145,14 @@ export default function QuoteDetails() {
           </ul>
         </div>
       )}
-
+       {/* {services.length > 0 && (
+        <div className="bg-white rounded-xl shadow p-6 mb-8">
+          <h2 className="text-xl font-semibold mb-4 text-[#4B3621]">Extra Services</h2>
+          <ul className="list-disc list-inside">
+            {services.map((s, i) => <li key={i}>{s}</li>)}
+          </ul>
+        </div>
+      )} */}
 
       {photo_urls.length > 0 && (
         <div className="bg-white rounded-xl shadow p-6 mb-8">
@@ -183,3 +178,5 @@ export default function QuoteDetails() {
     </div>
   );
 }
+
+     

@@ -2,19 +2,22 @@
 import { useEffect, useState, useCallback } from "react";
 import { supabase } from "../../lib/supabase";
 import QuoteModal from "../../components/QuoteModal";
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 
 export default function Quotes() {
+  const navigate = useNavigate();
+  useEffect(() => {
+    const isAuth = localStorage.getItem("admin_auth");
+    if (!isAuth) navigate("/admin/login");
+  }, [navigate]);
+
   const [quotes, setQuotes] = useState([]);
   const [quoteToEdit, setQuoteToEdit] = useState(null);
   const [showAddForm, setShowAddForm] = useState(false);
-
   const [sortField, setSortField] = useState("created_at");
   const [sortOrder, setSortOrder] = useState("desc");
   const [statusFilter, setStatusFilter] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
-
-
 
   const fetchQuotes = useCallback(async () => {
     let query = supabase.from("quotes").select("*");
@@ -46,7 +49,6 @@ export default function Quotes() {
     const confirmDelete = window.confirm("Are you sure you want to delete this estimate?");
     if (!confirmDelete) return;
     await supabase.from("quotes").delete().eq("id", id);
-    // Refresh
     const { data, error } = await supabase.from("quotes").select("*").order(sortField, { ascending: sortOrder === "asc" });
     if (!error) setQuotes(data);
   };
@@ -185,7 +187,6 @@ export default function Quotes() {
               </tr>
             ))}
           </tbody>
-
         </table>
       </div>
     </div>

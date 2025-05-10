@@ -3,6 +3,8 @@ import { useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import AOS from 'aos';
 import 'aos/dist/aos.css';
+import { CheckCircle } from 'lucide-react';
+
 
 export default function About() {
   useEffect(() => {
@@ -37,11 +39,21 @@ export default function About() {
           </div>
           <div data-aos="fade-left">
             <div className="bg-gray-50 p-6 rounded-2xl shadow-md space-y-2">
-              <div className="text-lg font-medium text-[#4B3621]">Why Choose Us?</div>
-              <ul className="list-disc list-inside text-gray-700 space-y-1">
-                <li>Decades of combined experience</li>
-                <li>Eco-conscious, long-lasting stains</li>
-                <li>Local PEI expertise and commitment</li>
+              {/* Why Choose Us */}
+              <h3 className="text-2xl font-semibold text-[#4B3621] mb-4">Why Choose Us?</h3>
+              <ul className="space-y-4 text-gray-700 text-base">
+                <li className="flex items-start space-x-3">
+                  <CheckCircle className="text-[#4B3621] w-5 h-5 mt-1" />
+                  <span>Ultra low VOC oil stains — safe for pets, kids, and your backyard.</span>
+                </li>
+                <li className="flex items-start space-x-3">
+                  <CheckCircle className="text-[#4B3621] w-5 h-5 mt-1" />
+                  <span>We’re fully insured and offer a warranty on our work.</span>
+                </li>
+                <li className="flex items-start space-x-3">
+                  <CheckCircle className="text-[#4B3621] w-5 h-5 mt-1" />
+                  <span>PEI’s only company dedicated solely to professional staining.</span>
+                </li>
               </ul>
             </div>
           </div>

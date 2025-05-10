@@ -1,7 +1,17 @@
 // src/pages/admin/Dashboard.jsx
+import { useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { Link } from "react-router-dom";
 
 export default function Dashboard() {
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const isAuth = localStorage.getItem("admin_auth");
+    if (!isAuth) {
+      navigate("/admin/login");
+    }
+  }, [navigate]);
   return (
     <div className="container mx-auto px-6 py-10 pt-24 max-w-screen-xl">
       <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4 mb-8">
@@ -27,4 +37,5 @@ export default function Dashboard() {
       </div>
     </div>
   );
+  
 }
