@@ -11,37 +11,37 @@ export default function Home() {
   return (
     <div className="pt-16 text-gray-800 scroll-smooth">
       {/* Hero */}
-      <section
-        className="relative min-h-screen flex items-center justify-center bg-cover bg-center text-white px-6 text-center"
-        style={{ backgroundImage: "url('/images/wood.png')" }}
-      >
-        {/* Overlay */}
-        <div className="absolute inset-0 bg-black bg-opacity-50"></div>
+  
+  <section
+  className="relative h-screen w-full flex items-center justify-center bg-center bg-cover px-6"
+  style={{ backgroundImage: "url('/images/wood.png')" }}
+>
+  {/* Overlay */}
+  <div className="absolute inset-0 bg-gradient-to-b from-black/60 to-black/30 backdrop-blur-sm"></div>
 
-        {/* Content */}
-        <div
-          className="relative z-10 w-full max-w-2xl px-6 py-14 bg-white/80 rounded-2xl shadow-xl backdrop-blur-md space-y-6"
-          data-aos="zoom-in"
-        >
-          <h1 className="text-4xl md:text-6xl font-extrabold text-[#4B3621]">
-            Bring Your Deck Back to Life
-          </h1>
-          <p className="text-lg md:text-xl text-gray-700">
-            Professional wood staining & restoration services that protect and beautify.
-          </p>
-          <div className="space-y-2">
-            <Link
-              to="/quote"
-              className="inline-block bg-[#4B3621] hover:bg-[#3a2b1a] text-white py-3 px-8 rounded-full text-lg transition shadow-md"
-            >
-              INSTANT ESTIMATE
-            </Link>
-            <p className="text-lg md:text-xl font-semibold text-gray-700">
-              NO Site Visit Required!
-            </p>
-          </div>
-        </div>
-      </section>
+  {/* Hero Content */}
+  <div className="relative z-10 max-w-5xl w-full text-center text-white space-y-8 px-4">
+    <h1 className="text-5xl md:text-6xl font-extrabold tracking-tight leading-tight drop-shadow-xl">
+      Bring Your Deck Back to Life
+    </h1>
+    <p className="text-xl md:text-2xl text-white/90 font-light max-w-2xl mx-auto drop-shadow">
+      Professional wood staining & restoration services that protect and beautify.
+    </p>
+
+    <div className="flex flex-col items-center space-y-4 mt-6">
+      <Link
+        to="/quote"
+        className="bg-[#decab1] hover:bg-[#d3bfa6] text-[#4B3621] font-bold py-3 px-10 rounded-full text-lg transition duration-300 shadow-xl animate-bounce"
+      >
+        INSTANT ESTIMATE
+      </Link>
+      <p className="text-lg md:text-xl font-semibold text-white">
+        NO Site Visit Required!
+      </p>
+    </div>
+  </div>
+</section>
+
 
       {/* Services */}
       <section id="services" className="py-20 bg-gray-100">
