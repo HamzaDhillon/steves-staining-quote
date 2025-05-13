@@ -65,8 +65,8 @@ export default function Contact() {
             </p>
             <p className="text-gray-700">
               <strong>Email:</strong>{' '}
-              <a href="mailto:steve@instantestimates.ca" className="text-[#4B3621] hover:underline">
-                steve@instantestimates.ca
+              <a href="mailto:steve@stevesstainingservices.ca" className="text-[#4B3621] hover:underline">
+                steve@stevesstainingservices.ca
               </a>
             </p>
             <div>

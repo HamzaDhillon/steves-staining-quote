@@ -1,14 +1,15 @@
-
-
 // src/pages/PricingEditor.jsx
 import { useEffect, useState } from "react";
 import { supabase } from "../../lib/supabase";
+import useAdminAuth from "../../hooks/useAdminAuth";
 
 export default function PricingEditor() {
+
   const [pricing, setPricing] = useState([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("Deck");
 
+  useAdminAuth();
   useEffect(() => {
     fetchPricing();
   }, []);
@@ -41,8 +42,8 @@ export default function PricingEditor() {
       deck_sqft: "Deck Sq. Ft. ($/sq.ft)",
       railing_ft: "Railing ($/ft)",
       step: "Step ($ each)",
-      deck_age_1_6: "Deck Age 1–6 months",
-      deck_age_6_12: "Deck Age 6–12 months",
+      deck_age_1_6: "Deck Age New (less than 1 month)",
+      deck_age_6_12: "Deck Age 1–12 months",
       deck_age_1_5: "Deck Age 1–5 years",
       deck_age_5_plus: "Deck Age 5+ years",
       previous_none: "No Coating ($/sq.ft)",
@@ -50,8 +51,8 @@ export default function PricingEditor() {
       previous_stain: "Stained ($/sq.ft)",
       fence_sqft: "Fence Sq. Ft. ($/sq.ft)",
       fence_double: "Double-Sided Multiplier (x)",
-      fence_age_1_6: "Fence Age 1–6 months",
-      fence_age_6_12: "Fence Age 6–12 months",
+      fence_age_1_6: "Fence Age New (less than 1 month)",
+      fence_age_6_12: "Fence Age 1–12 months",
       fence_age_1_5: "Fence Age 1–5 years",
       fence_age_5_plus: "Fence Age 5+ years",
       fence_previous_none: "Fence No Coating ($/sq.ft)",
@@ -59,6 +60,7 @@ export default function PricingEditor() {
       fence_previous_stain: "Fence Stained ($/sq.ft)",
       deck_wash: "Deck Wash ($/sq.ft)",
       fence_wash: "Fence Wash ($/sq.ft)"
+
     };
     return labels[key] || key.replace(/_/g, " ");
   };
@@ -103,8 +105,8 @@ export default function PricingEditor() {
             key={tab}
             onClick={() => setActiveTab(tab)}
             className={`px-4 py-2 font-medium border-b-4 ${activeTab === tab
-                ? "border-[#4B3621] text-[#4B3621]"
-                : "border-transparent text-gray-500 hover:text-[#4B3621]"
+              ? "border-[#4B3621] text-[#4B3621]"
+              : "border-transparent text-gray-500 hover:text-[#4B3621]"
               }`}
           >
             {tab}

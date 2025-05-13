@@ -3,6 +3,8 @@ import { useEffect, useState, useCallback } from "react";
 import { supabase } from "../../lib/supabase";
 import QuoteModal from "../../components/QuoteModal";
 import { Link, useNavigate } from 'react-router-dom';
+import { toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 export default function Quotes() {
   const navigate = useNavigate();
@@ -37,20 +39,30 @@ export default function Quotes() {
     await supabase.from("quotes").insert([{ ...data, status: "Pending" }]);
     setShowAddForm(false);
     fetchQuotes();
+    toast.success("Estimate added successfully.");
   };
 
   const handleEdit = async (data) => {
     await supabase.from("quotes").update({ ...data }).eq("id", quoteToEdit.id);
     setQuoteToEdit(null);
     fetchQuotes();
+    toast.success("Estimate updated successfully.");
   };
 
-  const deleteQuote = async (id) => {
-    const confirmDelete = window.confirm("Are you sure you want to delete this estimate?");
+  const deleteQuote = async (id, fullName, estimateNumber) => {
+    const confirmDelete = window.confirm(`Are you sure you want to delete the estimate #${estimateNumber} for ${fullName}?`);
     if (!confirmDelete) return;
-    await supabase.from("quotes").delete().eq("id", id);
-    const { data, error } = await supabase.from("quotes").select("*").order(sortField, { ascending: sortOrder === "asc" });
-    if (!error) setQuotes(data);
+
+    const { error } = await supabase.from("quotes").delete().eq("id", id);
+    if (error) {
+      toast.error("Failed to delete the estimate.");
+      return;
+    }
+
+    const { data } = await supabase.from("quotes").select("*").order(sortField, { ascending: sortOrder === "asc" });
+    setQuotes(data);
+
+    toast.success(`Estimate #${estimateNumber} for ${fullName} was deleted.`);
   };
 
   const togglePaidStatus = async (id, currentStatus) => {
@@ -66,7 +78,7 @@ export default function Quotes() {
   );
 
   return (
-    <div className="container mx-auto px-6 py-10 pt-24 max-w-screen-xl" >
+    <div className="container mx-auto px-6 py-10 pt-24 max-w-screen-xl">
       <QuoteModal isOpen={showAddForm} onClose={() => setShowAddForm(false)} onSubmit={handleAdd} />
       <QuoteModal
         isOpen={!!quoteToEdit}
@@ -178,7 +190,7 @@ export default function Quotes() {
                     Edit
                   </Link>
                   <button
-                    onClick={() => deleteQuote(quote.id)}
+                    onClick={() => deleteQuote(quote.id, quote.full_name, quote.estimate_number)}
                     className="text-xs bg-red-600 text-white hover:bg-red-700 px-3 py-1 rounded"
                   >
                     Delete

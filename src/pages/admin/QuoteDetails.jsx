@@ -3,13 +3,14 @@ import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "../../lib/supabase";
 import emailjs from "emailjs-com";
-
+import useAdminAuth from "../../hooks/useAdminAuth";
 
 export default function QuoteDetails() {
   const { id } = useParams();
   const navigate = useNavigate();
   const [quote, setQuote] = useState(null);
   const [loading, setLoading] = useState(true);
+  useAdminAuth();
 
   useEffect(() => {
     async function fetchQuote() {

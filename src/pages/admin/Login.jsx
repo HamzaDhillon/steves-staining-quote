@@ -8,7 +8,6 @@ export default function Login() {
   const navigate = useNavigate();
 
   const handleLogin = () => {
-    // Replace this with proper login validation or use Supabase Auth
     if (email === "admin" && pass === "@Sam6uel") {
       localStorage.setItem("admin_auth", "true");
       navigate("/admin/dashboard");
@@ -18,26 +17,36 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100">
-      <div className="bg-white p-8 rounded shadow-md w-full max-w-sm">
-        <h2 className="text-2xl font-bold mb-4 text-center text-[#4B3621]">Admin Login</h2>
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#f5f5f5] to-[#e7dfd7]">
+      <div className="bg-white p-10 rounded-2xl shadow-2xl w-full max-w-sm text-center">
+        {/* Logo */}
+        <img
+          src="/images/steve_logo.png"
+          alt="Steve's Logo"
+          className="h-20 w-auto mx-auto mb-6"
+        />
+
+        <h2 className="text-3xl font-bold mb-6 text-[#4B3621]">Admin Login</h2>
+
         <input
           type="email"
           placeholder="Email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
-          className="w-full border p-2 mb-4 rounded"
+          className="w-full px-4 py-3 mb-4 border rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-[#4B3621]"
         />
+
         <input
           type="password"
           placeholder="Password"
           value={pass}
           onChange={(e) => setPass(e.target.value)}
-          className="w-full border p-2 mb-6 rounded"
+          className="w-full px-4 py-3 mb-6 border rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-[#4B3621]"
         />
+
         <button
           onClick={handleLogin}
-          className="w-full bg-[#4B3621] hover:bg-[#3a2b1a] text-white p-2 rounded-full"
+          className="w-full bg-[#4B3621] hover:bg-[#3a2b1a] text-white font-semibold py-3 rounded-full transition"
         >
           Login
         </button>
