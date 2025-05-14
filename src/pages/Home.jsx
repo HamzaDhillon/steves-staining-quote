@@ -11,62 +11,88 @@ export default function Home() {
   return (
     <div className="pt-16 text-gray-800 scroll-smooth">
       {/* Hero */}
-  
-  <section
-  className="relative h-screen w-full flex items-center justify-center bg-center bg-cover px-6"
-  style={{ backgroundImage: "url('/images/wood.png')" }}
->
-  {/* Overlay */}
-  <div className="absolute inset-0 bg-gradient-to-b from-black/60 to-black/30 backdrop-blur-sm"></div>
-
-  {/* Hero Content */}
-  <div className="relative z-10 max-w-5xl w-full text-center text-white space-y-8 px-4">
-    <h1 className="text-5xl md:text-6xl font-extrabold tracking-tight leading-tight drop-shadow-xl">
-      Bring Your Deck Back to Life
-    </h1>
-    <p className="text-xl md:text-2xl text-white/90 font-light max-w-2xl mx-auto drop-shadow">
-      Professional wood staining & restoration services that protect and beautify.
-    </p>
-
-    <div className="flex flex-col items-center space-y-4 mt-6">
-      <Link
-        to="/quote"
-        className="bg-[#decab1] hover:bg-[#d3bfa6] text-[#4B3621] font-bold py-3 px-10 rounded-full text-lg transition duration-300 shadow-xl animate-bounce"
+      <section
+        className="relative min-h-screen flex items-center justify-center bg-cover bg-center text-white px-6 text-center"
+        style={{ backgroundImage: "url('/images/wood.png')" }}
       >
-        INSTANT ESTIMATE
-      </Link>
-      <p className="text-lg md:text-xl font-semibold text-white">
-        NO Site Visit Required!
-      </p>
-    </div>
-  </div>
-</section>
+        {/* Overlay */}
+        <div className="absolute inset-0 bg-black bg-opacity-50"></div>
 
+        {/* Content */}
+        <div
+          className="relative z-10 w-full max-w-2xl px-6 py-14 bg-white/80 rounded-2xl shadow-xl backdrop-blur-md space-y-6"
+          data-aos="zoom-in"
+        >
+          <h1 className="text-4xl md:text-6xl font-extrabold text-[#4B3621]">
+            Bring Your Deck Back to Life
+          </h1>
+          <p className="text-lg md:text-xl text-gray-700">
+            Professional wood staining & restoration services that protect and beautify.
+          </p>
+          <div className="space-y-2">
+            <Link
+              to="/quote"
+              className="inline-block bg-[#4B3621] hover:bg-[#3a2b1a] text-white py-3 px-8 rounded-full text-lg transition shadow-md animate-bounce"
+            >
+              INSTANT ESTIMATE
+            </Link>
+            <p className="text-lg md:text-xl font-semibold text-gray-700">
+              NO Site Visit Required!
+            </p>
+          </div>
+        </div>
+      </section>
 
       {/* Services */}
-      <section id="services" className="py-20 bg-gray-100">
-        <div className="max-w-6xl mx-auto px-4 text-center">
-          <h2 className="text-3xl md:text-4xl font-bold mb-12 text-[#4B3621]" data-aos="fade-up">
+      <section id="services" className="py-24 bg-gradient-to-b from-gray-50 to-gray-100 relative">
+        <div className="max-w-6xl mx-auto px-6">
+          <h2
+            className="text-4xl md:text-5xl font-bold text-center text-[#4B3621] mb-20"
+            data-aos="fade-up"
+          >
             What We Stain
           </h2>
-          <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-8">
+
+          <div className="grid gap-16 md:grid-cols-3 sm:grid-cols-1">
             {[
-              { title: 'Decks', icon: '/images/deck_finish.webp' },
-              { title: 'Fences', icon: '/images/fence.jpg' },
-              { title: 'Other Outdoor Structures', icon: '/images/pergola.jpg' },
-            ].map(({ title, icon }) => (
+              {
+                title: 'Decks',
+                icon: '/images/deck_finish.webp',
+                desc: 'We restore and stain decks to enhance durability and showcase the natural wood grain.',
+              },
+              {
+                title: 'Fences',
+                icon: '/images/fence.jpg',
+                desc: 'Protect your fence from weather and wear while improving your home’s curb appeal.',
+              },
+              {
+                title: 'Outdoor Structures',
+                icon: '/images/pergola.jpg',
+                desc: 'From pergolas to gazebos, we stain and seal all outdoor wood structures with care.',
+              },
+            ].map(({ title, icon, desc }, idx) => (
               <div
                 key={title}
-                className="bg-white rounded-2xl shadow-md hover:shadow-xl transition"
+                className="relative group perspective"
                 data-aos="fade-up"
+                data-aos-delay={idx * 100}
               >
-                <img
-                  src={icon}
-                  alt={title}
-                  className="w-full h-52 object-cover rounded-t-2xl"
-                />
-                <div className="p-5">
-                  <h3 className="text-lg font-semibold text-[#4B3621]">{title}</h3>
+                <div className="relative w-full aspect-[4/3] transform-gpu transition duration-500 group-hover:rotate-y-6 group-hover:scale-[1.03]">
+                  <div className="absolute inset-0 rounded-2xl shadow-xl overflow-hidden">
+                    <div className="relative h-full w-full">
+                      <img
+                        src={icon}
+                        alt={title}
+                        className="h-full w-full object-cover rounded-2xl"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent rounded-2xl"></div>
+                      <div className="absolute bottom-6 left-6 right-6 text-white">
+                        <h3 className="text-2xl font-bold drop-shadow">{title}</h3>
+                        <p className="text-sm mt-2 leading-snug drop-shadow-sm">{desc}</p>
+                        <div className="w-10 h-1 bg-white mt-3 rounded-full"></div>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
             ))}

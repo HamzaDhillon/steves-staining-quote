@@ -60,8 +60,16 @@ export default function Quote() {
 
   const onSubmit = async (data) => {
     const photoUrls = await uploadPhotos();
-    const { count } = await supabase.from('quotes').select('*', { count: 'exact', head: true });
-    const estimate_number = String(count + 1).padStart(4, '0');
+    // Get next estimate number using atomic RPC
+    const { data: rpcResult, error: rpcError } = await supabase.rpc('increment_estimate_number');
+
+    if (rpcError || !rpcResult) {
+      console.error("Failed to generate estimate number:", rpcError?.message);
+      alert("There was a problem generating your estimate number. Please try again.");
+      return;
+    }
+
+    const estimate_number = String(rpcResult).padStart(4, '0');
 
     if (data.project_type === 'Other') {
       await supabase.from('quotes').insert([{
@@ -187,7 +195,7 @@ export default function Quote() {
       doc.setFont('helvetica', 'normal');
       doc.setTextColor(100);
       doc.text("This estimate is subject to site inspection and may change based on actual measurements and conditions.", 14, 270);
-      doc.text("instantestimates.ca | steve@instantestimates.ca | +1 (902) 314-0505", 14, 278);
+      doc.text("stevestainingservices.ca | stevesstainingservices@gmail.com | +1 (902) 314-0505", 14, 278);
 
       // Save the PDF
       doc.save(`Estimate_${estimate_number}.pdf`);
