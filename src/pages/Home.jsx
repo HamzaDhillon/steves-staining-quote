@@ -67,7 +67,7 @@ export default function Home() {
               },
               {
                 title: 'Outdoor Structures',
-                icon: '/images/pergola.jpg',
+                icon: '/images/pergola.JPG',
                 desc: 'From pergolas to gazebos, we stain and seal all outdoor wood structures with care.',
               },
             ].map(({ title, icon, desc }, idx) => (

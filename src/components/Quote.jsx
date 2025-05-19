@@ -57,6 +57,16 @@ export default function Quote() {
     }
     return urls;
   };
+  function mapAgeToKey(ageLabel, prefix) {
+    if (!ageLabel) return null;
+    const map = {
+      'New (less than 1 month)': `${prefix}_1_6`,
+  '1-12 months': `${prefix}_6_12`,
+  '1-5 years': `${prefix}_1_5`,
+  '5+ years': `${prefix}_5_plus`,
+    };
+    return map[ageLabel] || null;
+  }
 
   const onSubmit = async (data) => {
     const photoUrls = await uploadPhotos();
@@ -100,8 +110,18 @@ export default function Quote() {
 
     if (projectType === 'Deck' || projectType === 'Both') {
       deckStaining = sf * (pricing.deck_sqft || 0) + rf * (pricing.railing_ft || 0) + st * (pricing.step || 0);
-      if (deckData.deckAge) deckPrep += sf * (pricing[`deck_age_${deckData.deckAge.replace(/\D/g, '_')}`] || 0);
-      if (deckData.previousCoating) deckPrep += sf * (pricing[`previous_${deckData.previousCoating.toLowerCase()}`] || 0);
+      if (deckData.deckAge) {
+        const deckAgeKey = mapAgeToKey(deckData.deckAge, 'deck_age');
+        // console.log('Deck age key:', deckAgeKey);
+        deckPrep += sf * (pricing[deckAgeKey] || 0);
+      }
+
+      if (deckData.previousCoating) {
+        const key = `previous_${deckData.previousCoating.toLowerCase()}`;
+        // console.log('Deck previous coating key:', key);
+        deckPrep += sf * (pricing[key] || 0);
+      }
+
     }
 
     if (projectType === 'Fence' || projectType === 'Both') {
@@ -109,8 +129,19 @@ export default function Quote() {
       const h = parseFloat(fenceData.height) || 0;
       const area = lf * h;
       fenceStaining = area * (pricing.fence_sqft || 0) * (fenceData.doubleSided ? (pricing.fence_double || 2) : 1);
-      if (fenceData.fenceAge) fencePrep += area * (pricing[`deck_age_${fenceData.fenceAge.replace(/\D/g, '_')}`] || 0);
-      if (fenceData.fenceCoating) fencePrep += area * (pricing[`previous_${fenceData.fenceCoating.toLowerCase()}`] || 0);
+      if (fenceData.fenceAge) {
+        const fenceAgeKey = mapAgeToKey(fenceData.fenceAge, 'fence_age');
+        // console.log('Fence age key:', fenceAgeKey);
+        fencePrep += area * (pricing[fenceAgeKey] || 0);
+      }
+
+      if (fenceData.fenceCoating) {
+        const key = `previous_${fenceData.fenceCoating.toLowerCase()}`;
+        // console.log('Fence previous coating key:', key);
+        fencePrep += area * (pricing[key] || 0);
+      }
+
+
     }
 
     services.forEach(s => {
@@ -319,6 +350,7 @@ export default function Quote() {
           </div>
         )}
 
+
         {/* Maintenance Washing Services
         {projectType !== 'Other' && (
           <div className="space-y-2">
@@ -352,7 +384,9 @@ export default function Quote() {
       {submissionSuccess && (
         <div className="fixed top-6 left-1/2 transform -translate-x-1/2 bg-green-600 text-white px-6 py-3 rounded shadow-lg z-50 animate-fade-in-out">
           Estimate submitted successfully!
+
         </div>
+
       )}
     </div>
   );

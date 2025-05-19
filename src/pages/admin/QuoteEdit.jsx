@@ -4,12 +4,14 @@ import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "../../lib/supabase";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import useAdminAuth from "../../hooks/useAdminAuth";
 
 export default function QuoteEdit() {
   const { id } = useParams();
   const navigate = useNavigate();
   const [form, setForm] = useState(null);
   const [loading, setLoading] = useState(true);
+   useAdminAuth();
 
   useEffect(() => {
     async function fetchQuote() {
