@@ -61,9 +61,9 @@ export default function Quote() {
     if (!ageLabel) return null;
     const map = {
       'New (less than 1 month)': `${prefix}_1_6`,
-  '1-12 months': `${prefix}_6_12`,
-  '1-5 years': `${prefix}_1_5`,
-  '5+ years': `${prefix}_5_plus`,
+      '1-12 months': `${prefix}_6_12`,
+      '1-5 years': `${prefix}_1_5`,
+      '5+ years': `${prefix}_5_plus`,
     };
     return map[ageLabel] || null;
   }
@@ -121,7 +121,6 @@ export default function Quote() {
         // console.log('Deck previous coating key:', key);
         deckPrep += sf * (pricing[key] || 0);
       }
-
     }
 
     if (projectType === 'Fence' || projectType === 'Both') {
@@ -134,14 +133,10 @@ export default function Quote() {
         // console.log('Fence age key:', fenceAgeKey);
         fencePrep += area * (pricing[fenceAgeKey] || 0);
       }
-
       if (fenceData.fenceCoating) {
-        const key = `previous_${fenceData.fenceCoating.toLowerCase()}`;
-        // console.log('Fence previous coating key:', key);
+        const key = `fence_previous_${fenceData.fenceCoating.toLowerCase()}`;
         fencePrep += area * (pricing[key] || 0);
       }
-
-
     }
 
     services.forEach(s => {

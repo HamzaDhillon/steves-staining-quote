@@ -92,7 +92,7 @@ export default function Quotes() {
         <div className="flex flex-wrap gap-3">
           <button
             onClick={() => setShowAddForm(true)}
-            className="bg-[#4B3621] text-white px-4 py-2 rounded-md hover:bg-[#3a2b1a] transition"
+            className="bg-[#4B3621] text-white px-4 py-2 rounded-full hover:bg-[#3a2b1a] transition"
           >
             + New Estimate
           </button>
