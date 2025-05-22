@@ -99,64 +99,64 @@ export default function Home() {
           </div>
         </div>
       </section>
-      <section className="py-16 bg-white border-t border-gray-200" id="measuring-guide">
-        <div className="max-w-6xl mx-auto px-6" data-aos="fade-up">
-          <h2 className="text-3xl md:text-4xl font-bold text-center text-[#4B3621] mb-10">
-            How to Measure Your Deck & Fence
-          </h2>
+      {/* 
+<section className="py-16 bg-white border-t border-gray-200" id="measuring-guide">
+  <div className="max-w-6xl mx-auto px-6" data-aos="fade-up">
+    <h2 className="text-3xl md:text-4xl font-bold text-center text-[#4B3621] mb-10">
+      How to Measure Your Deck & Fence
+    </h2>
 
-          <div className="grid md:grid-cols-2 gap-10 items-start">
-            {/* Text Section */}
-            <div className="space-y-6 text-gray-700 text-lg leading-relaxed">
-              <p>
-                Getting an accurate estimate starts with a few simple measurements. You don't need professional tools —
-                just a measuring tape and a few minutes.
-              </p>
+    <div className="grid md:grid-cols-2 gap-10 items-start">
+      <div className="space-y-6 text-gray-700 text-lg leading-relaxed">
+        <p>
+          Getting an accurate estimate starts with a few simple measurements. You don't need professional tools —
+          just a measuring tape and a few minutes.
+        </p>
 
-              <h3 className="text-2xl font-semibold text-[#4B3621]">Measuring Your Deck</h3>
-              <ol className="list-decimal list-inside space-y-2">
-                <li>
-                  Measure the <strong>length</strong> and <strong>width</strong> of your deck (in feet). Multiply them
-                  to get total square footage.
-                </li>
-                <li>
-                  Measure the <strong>length of all railings</strong> around the deck.
-                </li>
-                <li>
-                  Count how many <strong>steps</strong> lead up or down from the deck.
-                </li>
-              </ol>
+        <h3 className="text-2xl font-semibold text-[#4B3621]">Measuring Your Deck</h3>
+        <ol className="list-decimal list-inside space-y-2">
+          <li>
+            Measure the <strong>length</strong> and <strong>width</strong> of your deck (in feet). Multiply them
+            to get total square footage.
+          </li>
+          <li>
+            Measure the <strong>length of all railings</strong> around the deck.
+          </li>
+          <li>
+            Count how many <strong>steps</strong> lead up or down from the deck.
+          </li>
+        </ol>
 
-              <h3 className="text-2xl font-semibold text-[#4B3621] mt-8">Measuring Your Fence</h3>
-              <ol className="list-decimal list-inside space-y-2">
-                <li>
-                  Measure the <strong>total length</strong> of your fence in feet (add up all sides).
-                </li>
-                <li>
-                  Measure the <strong>height</strong> of the fence.
-                </li>
-                <li>
-                  Let us know if the fence is <strong>double-sided</strong> (stained on both sides) or single-sided.
-                </li>
-              </ol>
+        <h3 className="text-2xl font-semibold text-[#4B3621] mt-8">Measuring Your Fence</h3>
+        <ol className="list-decimal list-inside space-y-2">
+          <li>
+            Measure the <strong>total length</strong> of your fence in feet (add up all sides).
+          </li>
+          <li>
+            Measure the <strong>height</strong> of the fence.
+          </li>
+          <li>
+            Let us know if the fence is <strong>double-sided</strong> (stained on both sides) or single-sided.
+          </li>
+        </ol>
 
-              <p className="mt-6">
-                Enter these numbers into our estimate form, and we’ll do the rest — no site visit required.
-              </p>
-            </div>
+        <p className="mt-6">
+          Enter these numbers into our estimate form, and we’ll do the rest — no site visit required.
+        </p>
+      </div>
 
-            {/* Image Section */}
-            <div className="space-y-6">
-              <div className="rounded-2xl overflow-hidden shadow-md">
-                <img src="/images/deck-measure-example.jpg" alt="Deck measurement example" className="w-full h-auto object-cover" />
-              </div>
-              <div className="rounded-2xl overflow-hidden shadow-md">
-                <img src="/images/fence-measure-example.jpg" alt="Fence measurement example" className="w-full h-auto object-cover" />
-              </div>
-            </div>
-          </div>
+      <div className="space-y-6">
+        <div className="rounded-2xl overflow-hidden shadow-md">
+          <img src="/images/deck-measure-example.png" alt="Deck measurement example" className="w-full h-auto object-cover" />
         </div>
-      </section>
+        <div className="rounded-2xl overflow-hidden shadow-md">
+          <img src="/images/fence-measure-example.jpg" alt="Fence measurement example" className="w-full h-auto object-cover" />
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+*/}
 
       {/* 3-Step Process */}
       <section id="process" className="py-20 bg-white">

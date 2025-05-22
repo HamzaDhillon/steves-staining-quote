@@ -1,6 +1,6 @@
 // Enhanced QuoteEdit.jsx with full form and normalization
-import { useEffect, useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useEffect, useState,useMemo } from "react";
+import { useParams } from "react-router-dom";
 import { supabase } from "../../lib/supabase";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
@@ -8,16 +8,16 @@ import useAdminAuth from "../../hooks/useAdminAuth";
 
 export default function QuoteEdit() {
   const { id } = useParams();
-  const navigate = useNavigate();
+  // const navigate = useNavigate();
   const [form, setForm] = useState(null);
   const [loading, setLoading] = useState(true);
   const [pricingMap, setPricingMap] = useState({});
-  const ageOptions = [
+  const ageOptions = useMemo(() => [
     { value: "1-6 months", label: "New (less than 1 month)" },
     { value: "6-12 months", label: "1–12 months" },
     { value: "1-5 years", label: "1–5 years" },
     { value: "5+ years", label: "5+ years" }
-  ];
+  ], []);
   const coatingOptions = ["None", "Painted", "Stained"];
   useAdminAuth();
 
@@ -78,7 +78,7 @@ export default function QuoteEdit() {
     }
 
     fetchQuote();
-  }, [id]);
+  }, [id, ageOptions]);
 
 
   useEffect(() => {
@@ -87,7 +87,7 @@ export default function QuoteEdit() {
       const tax = parseFloat(form.tax || 0);
       setForm((prev) => ({ ...prev, total: subtotal + tax }));
     }
-  }, [form?.subtotal, form?.tax]);
+  }, [form]);
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -348,7 +348,7 @@ export default function QuoteEdit() {
               <a key={i} href={url} target="_blank" rel="noopener noreferrer">
                 <img
                   src={url}
-                  alt={`Photo ${i + 1}`}
+                  alt={`Estimate upload ${i + 1}`}
                   className="rounded-lg shadow border hover:scale-105 transition-transform duration-300 cursor-zoom-in"
                 />
               </a>
