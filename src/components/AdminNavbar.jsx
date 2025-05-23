@@ -67,7 +67,7 @@ export default function AdminNavbar() {
               <LayoutDashboard size={18} /> Dashboard
             </Link>
             <Link to="/admin/quotes" onClick={() => setMenuOpen(false)} className="flex items-center gap-2 hover:text-[#4B3621]">
-              <FileText size={18} /> Quotes
+              <FileText size={18} /> Estimates
             </Link>
             <Link to="/admin/pricing" onClick={() => setMenuOpen(false)} className="flex items-center gap-2 hover:text-[#4B3621]">
               <Settings size={18} /> Pricing

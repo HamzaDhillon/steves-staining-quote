@@ -1,5 +1,5 @@
 // Enhanced QuoteEdit.jsx with full form and normalization
-import { useEffect, useState,useMemo } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { useParams } from "react-router-dom";
 import { supabase } from "../../lib/supabase";
 import { toast, ToastContainer } from "react-toastify";
@@ -12,6 +12,7 @@ export default function QuoteEdit() {
   const [form, setForm] = useState(null);
   const [loading, setLoading] = useState(true);
   const [pricingMap, setPricingMap] = useState({});
+
   const ageOptions = useMemo(() => [
     { value: "1-6 months", label: "New (less than 1 month)" },
     { value: "6-12 months", label: "1–12 months" },
@@ -21,15 +22,6 @@ export default function QuoteEdit() {
   const coatingOptions = ["None", "Painted", "Stained"];
   useAdminAuth();
 
-  function normalizeCoating(value) {
-    const val = value?.trim().toLowerCase();
-    if (!val) return "None";
-
-    if (val.includes("paint")) return "Painted";
-    if (val.includes("stain")) return "Stained";
-
-    return "None";
-  }
 
   useEffect(() => {
     async function fetchQuote() {
@@ -37,6 +29,7 @@ export default function QuoteEdit() {
       if (error) {
         console.error("Fetch error:", error);
       } else {
+
         const normalizedData = { ...data };
         normalizedData.deck_data =
           typeof normalizedData.deck_data === "string"
@@ -46,19 +39,7 @@ export default function QuoteEdit() {
         normalizedData.fence_data =
           typeof normalizedData.fence_data === "string"
             ? JSON.parse(normalizedData.fence_data || "{}")
-            : normalizedData.fence_data || {};
-
-        const rawDeckAge = normalizedData.deck_data.deckAge?.trim().toLowerCase();
-        const matchedDeckAge = ageOptions.find(opt => opt.value.toLowerCase() === rawDeckAge)?.value || "";
-        normalizedData.deck_data.deckAge = matchedDeckAge;
-
-        normalizedData.deck_data.previousCoating = normalizeCoating(normalizedData.deck_data.previousCoating);
-        normalizedData.fence_data.fenceCoating = normalizeCoating(normalizedData.fence_data.fenceCoating);
-
-
-        const rawFenceAge = normalizedData.fence_data.fenceAge?.trim().toLowerCase();
-        const matchedFenceAge = ageOptions.find(opt => opt.value.toLowerCase() === rawFenceAge)?.value || "";
-        normalizedData.fence_data.fenceAge = matchedFenceAge;
+            : normalizedData.fence_data || {}
 
         setForm(normalizedData);
         async function fetchPricing() {
@@ -108,79 +89,95 @@ export default function QuoteEdit() {
   }
   const handleNestedChange = (section, key, value) => {
     setForm((prev) => {
-      const updatedSection = {
-        ...prev[section],
-        [key]: value,
+      const updated = {
+        ...prev,
+        [section]: {
+          ...prev[section],
+          [key]: value,
+        }
       };
 
-      let newSubtotal = prev.subtotal;
-      let tax = prev.tax;
-      let total = prev.total;
+      const pricing = pricingMap;
+      let deckStaining = 0, deckPrep = 0;
+      let fenceStaining = 0, fencePrep = 0;
+      let subtotal = 0, tax = 0, total = 0;
 
-      if (section === "fence_data") {
-        const { linearFeet = 0, height = 0, doubleSided, fenceAge, fenceCoating } = {
-          ...updatedSection,
-          [key]: value,
-        };
-
-        const lf = parseFloat(linearFeet) || 0;
-        const h = parseFloat(height) || 0;
-        const area = lf * h;
-
-        const ageKey = mapAgeToKey(fenceAge);
-        const coatKey = fenceCoating ? `fence_previous_${fenceCoating.toLowerCase()}` : null;
-        const multiplier = doubleSided ? pricingMap.fence_double || 2 : 1;
-
-        const baseCost = area * (pricingMap.fence_sqft || 0) * multiplier;
-        const prepCost = area * ((pricingMap[ageKey] || 0) + (pricingMap[coatKey] || 0));
-
-        newSubtotal = parseFloat((baseCost + prepCost).toFixed(2));
-      }
-
-      if (section === "deck_data") {
-        const { squareFootage = 0, railingFeet = 0, steps = 0, deckAge, previousCoating } = {
-          ...updatedSection,
-          [key]: value,
-        };
+      // Deck calc
+      if (updated.deck_data) {
+        const { squareFootage = 0, railingFeet = 0, steps = 0, deckAge, previousCoating } = updated.deck_data;
 
         const sf = parseFloat(squareFootage) || 0;
         const rail = parseFloat(railingFeet) || 0;
         const st = parseFloat(steps) || 0;
 
-        const baseCost =
-          sf * (pricingMap.deck_sqft || 0) +
-          rail * (pricingMap.railing_ft || 0) +
-          st * (pricingMap.step || 0);
+        deckStaining = sf * (pricing.deck_sqft || 0)
+          + rail * (pricing.railing_ft || 0)
+          + st * (pricing.step || 0);
+
+        let coatKey = previousCoating?.trim().toLowerCase();
+        if (coatKey === "painted") coatKey = "paint";
+        if (coatKey === "stained") coatKey = "stain";
+        const coatingKey = coatKey ? `previous_${coatKey}` : null;
 
         const ageKey = mapAgeToKey(deckAge, "deck_age");
-        const coatKey = previousCoating ? `previous_${previousCoating.toLowerCase()}` : null;
-
-        const prepCost = sf * ((pricingMap[ageKey] || 0) + (pricingMap[coatKey] || 0));
-
-        newSubtotal = parseFloat((baseCost + prepCost).toFixed(2));
+        deckPrep = sf * ((pricing[ageKey] || 0) + (pricing[coatingKey] || 0));
       }
 
-      tax = parseFloat((newSubtotal * 0.15).toFixed(2));
-      total = parseFloat((newSubtotal + tax).toFixed(2));
+      // Fence calc
+      if (updated.fence_data) {
+        const { linearFeet = 0, height = 0, doubleSided, fenceAge, fenceCoating } = updated.fence_data;
+
+        const lf = parseFloat(linearFeet) || 0;
+        const h = parseFloat(height) || 0;
+        const area = lf * h;
+
+        let coatKey = fenceCoating?.trim().toLowerCase();
+        if (coatKey === "painted") coatKey = "paint";
+        if (coatKey === "stained") coatKey = "stain";
+        const coatingKey = coatKey ? `fence_previous_${coatKey}` : null;
+
+        const ageKey = mapAgeToKey(fenceAge, "fence_age");
+        const multiplier = doubleSided ? pricing.fence_double || 2 : 1;
+
+        fenceStaining = area * (pricing.fence_sqft || 0) * multiplier;
+        fencePrep = area * ((pricing[ageKey] || 0) + (pricing[coatingKey] || 0));
+      }
+
+      subtotal = deckStaining + deckPrep + fenceStaining + fencePrep;
+      tax = parseFloat((subtotal * 0.15).toFixed(2));
+      total = parseFloat((subtotal + tax).toFixed(2));
 
       return {
-        ...prev,
-        [section]: updatedSection,
-        subtotal: newSubtotal,
+        ...updated,
+        subtotal,
         tax,
         total,
+        deck_staining: deckStaining,
+        deck_preparation: deckPrep,
+        fence_staining: fenceStaining,
+        fence_preparation: fencePrep,
       };
     });
   };
 
+
   const handleSubmit = async () => {
+    // 🔒 Ensure deck_data and fence_data are objects
+    const safeDeckData = typeof form.deck_data === "string"
+      ? JSON.parse(form.deck_data)
+      : form.deck_data;
+
+    const safeFenceData = typeof form.fence_data === "string"
+      ? JSON.parse(form.fence_data)
+      : form.fence_data;
+
     const payload = {
       ...form,
       custom_description: form.custom_description || null,
-      deck_data: form.deck_data ? JSON.stringify(form.deck_data) : null,
-      fence_data: form.fence_data ? JSON.stringify(form.fence_data) : null,
+      deck_data: safeDeckData || null,
+      fence_data: safeFenceData || null,
       photo_urls: Array.isArray(form.photo_urls) ? form.photo_urls : [],
-
+      services: Array.isArray(form.services) ? form.services : [],
     };
 
     const { error } = await supabase.from("quotes").update(payload).eq("id", id);
@@ -189,11 +186,9 @@ export default function QuoteEdit() {
       toast.error("Failed to update the estimate. Please try again.");
     } else {
       toast.success("Estimate updated successfully.");
-      // setTimeout(() => {
-      //   navigate("/admin/quotes");
-      // }, 2000); // 2 seconds delay
     }
   };
+
 
   if (loading || !form) return <div className="p-8">Loading...</div>;
 
@@ -224,35 +219,84 @@ export default function QuoteEdit() {
         <section className="mb-8">
           <h2 className="text-xl font-semibold text-[#4B3621] mb-2">Deck Details</h2>
           <div className="grid md:grid-cols-3 gap-4">
-            {["squareFootage", "railingFeet", "steps", "deckAge", "previousCoating"].map((key) => (
-              <div key={key} className="flex flex-col">
-                <label className="mb-1 font-semibold">
-                  {key.replace(/([a-z])([A-Z])/g, "$1 $2").replace(/^\w/, c => c.toUpperCase())}
-                </label>
 
-                {["deckAge", "previousCoating"].includes(key) ? (
-                  <select
-                    value={form.deck_data?.[key] || ""}
-                    onChange={(e) => handleNestedChange("deck_data", key, e.target.value)}
-                    className="border p-2 rounded w-full"
-                  >
-                    <option value="">Select</option>
-                    {(key === "deckAge" ? ageOptions : coatingOptions).map((opt) => (
-                      typeof opt === "object"
-                        ? <option key={opt.value} value={opt.value}>{opt.label}</option>
-                        : <option key={opt} value={opt}>{opt}</option>
-                    ))}
-                  </select>
-                ) : (
-                  <input
-                    type="number"
-                    value={form.deck_data?.[key] || ""}
-                    onChange={(e) => handleNestedChange("deck_data", key, e.target.value)}
-                    className="border p-2 rounded w-full"
-                  />
-                )}
-              </div>
-            ))}
+            {/* Square Footage */}
+            <div className="flex flex-col">
+              <label className="mb-1 font-semibold">Square Footage</label>
+              <input
+                type="number"
+                value={form.deck_data?.squareFootage || ""}
+                onChange={(e) =>
+                  handleNestedChange("deck_data", "squareFootage", e.target.value)
+                }
+                className="border p-2 rounded"
+              />
+            </div>
+
+            {/* Railing Feet */}
+            <div className="flex flex-col">
+              <label className="mb-1 font-semibold">Railing Feet</label>
+              <input
+                type="number"
+                value={form.deck_data?.railingFeet || ""}
+                onChange={(e) =>
+                  handleNestedChange("deck_data", "railingFeet", e.target.value)
+                }
+                className="border p-2 rounded"
+              />
+            </div>
+
+            {/* Steps */}
+            <div className="flex flex-col">
+              <label className="mb-1 font-semibold">Steps</label>
+              <input
+                type="number"
+                value={form.deck_data?.steps || ""}
+                onChange={(e) =>
+                  handleNestedChange("deck_data", "steps", e.target.value)
+                }
+                className="border p-2 rounded"
+              />
+            </div>
+
+            {/* Deck Age */}
+            <div className="flex flex-col">
+              <label className="mb-1 font-semibold">Deck Age</label>
+              <select
+                value={form.deck_data?.deckAge || ""}
+                onChange={(e) =>
+                  handleNestedChange("deck_data", "deckAge", e.target.value)
+                }
+                className="border p-2 rounded"
+              >
+                <option value="">Select Deck Age</option>
+                {ageOptions.map((opt) => (
+                  <option key={opt.value} value={opt.value}>
+                    {opt.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* Previous Coating */}
+            <div className="flex flex-col">
+              <label className="mb-1 font-semibold">Previous Coating</label>
+              <select
+                value={form.deck_data?.previousCoating || ""}
+                onChange={(e) =>
+                  handleNestedChange("deck_data", "previousCoating", e.target.value)
+                }
+                className="border p-2 rounded"
+              >
+                <option value="">Select Coating</option>
+                {coatingOptions.map((opt) => (
+                  <option key={opt} value={opt}>
+                    {opt}
+                  </option>
+                ))}
+              </select>
+            </div>
+
           </div>
         </section>
       )}
@@ -262,45 +306,84 @@ export default function QuoteEdit() {
         <section className="mb-8">
           <h2 className="text-xl font-semibold text-[#4B3621] mb-2">Fence Details</h2>
           <div className="grid md:grid-cols-3 gap-4">
-            {["linearFeet", "height", "fenceAge", "fenceCoating"].map((key) => (
-              <div key={key} className="flex flex-col">
-                <label className="mb-1 font-semibold">
-                  {key.replace(/([a-z])([A-Z])/g, "$1 $2").replace(/^\w/, c => c.toUpperCase())}
-                </label>
-                {["fenceAge", "fenceCoating"].includes(key) ? (
-                  <select
-                    value={form.fence_data?.[key] || ""}
-                    onChange={(e) => handleNestedChange("fence_data", key, e.target.value)}
-                    className="border p-2 rounded w-full"
-                  >
-                    <option value="">Select</option>
-                    {(key === "fenceAge" ? ageOptions : coatingOptions).map((opt) =>
-                      typeof opt === "object" ? (
-                        <option key={opt.value} value={opt.value}>{opt.label}</option>
-                      ) : (
-                        <option key={opt} value={opt}>{opt}</option>
-                      )
-                    )}
 
-                  </select>
-                ) : (
-                  <input
-                    type="number"
-                    value={form.fence_data?.[key] || ""}
-                    onChange={(e) => handleNestedChange("fence_data", key, e.target.value)}
-                    className="border p-2 rounded w-full"
-                  />
-                )}
-              </div>
-            ))}
-            <div className="flex items-center gap-2 mt-6">
+            {/* Linear Feet */}
+            <div className="flex flex-col">
+              <label className="mb-1 font-semibold">Linear Feet</label>
+              <input
+                type="number"
+                value={form.fence_data?.linearFeet || ""}
+                onChange={(e) =>
+                  handleNestedChange("fence_data", "linearFeet", e.target.value)
+                }
+                className="border p-2 rounded"
+              />
+            </div>
+
+            {/* Height */}
+            <div className="flex flex-col">
+              <label className="mb-1 font-semibold">Height</label>
+              <input
+                type="number"
+                value={form.fence_data?.height || ""}
+                onChange={(e) =>
+                  handleNestedChange("fence_data", "height", e.target.value)
+                }
+                className="border p-2 rounded"
+              />
+            </div>
+
+            {/* Double Sided */}
+            <div className="flex flex-col">
+              <label className="mb-1 font-semibold">Double Sided</label>
               <input
                 type="checkbox"
                 checked={form.fence_data?.doubleSided || false}
-                onChange={(e) => handleNestedChange("fence_data", "doubleSided", e.target.checked)}
+                onChange={(e) =>
+                  handleNestedChange("fence_data", "doubleSided", e.target.checked)
+                }
+                className="h-5 w-5 mt-2"
               />
-              <label>Double Sided</label>
             </div>
+
+            {/* Fence Age */}
+            <div className="flex flex-col">
+              <label className="mb-1 font-semibold">Fence Age</label>
+              <select
+                value={form.fence_data?.fenceAge || ""}
+                onChange={(e) =>
+                  handleNestedChange("fence_data", "fenceAge", e.target.value)
+                }
+                className="border p-2 rounded"
+              >
+                <option value="">Select Fence Age</option>
+                {ageOptions.map((opt) => (
+                  <option key={opt.value} value={opt.value}>
+                    {opt.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* Previous Coating */}
+            <div className="flex flex-col">
+              <label className="mb-1 font-semibold">Previous Coating</label>
+              <select
+                value={form.fence_data?.fenceCoating || ""}
+                onChange={(e) =>
+                  handleNestedChange("fence_data", "fenceCoating", e.target.value)
+                }
+                className="border p-2 rounded"
+              >
+                <option value="">Select Coating</option>
+                {coatingOptions.map((opt) => (
+                  <option key={opt} value={opt}>
+                    {opt}
+                  </option>
+                ))}
+              </select>
+            </div>
+
           </div>
         </section>
       )}
@@ -356,7 +439,6 @@ export default function QuoteEdit() {
           </div>
         </section>
       )}
-
 
       <div className="text-right">
         <button onClick={handleSubmit} className="px-6 py-3 bg-[#4B3621] text-white rounded-full hover:bg-[#3a2b1a]">
